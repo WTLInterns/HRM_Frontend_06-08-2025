@@ -351,30 +351,24 @@ const Agreement_Contract_Letter = () => {
       
       // Convert PDF to blob for upload
       const pdfBlob = pdf.output('blob');
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', pdfBlob, 'agreement_contract.pdf');
+
+      // Add other form data
+      Object.entries(formData).forEach(([key, value]) => formDataToSend.append(key, value));
+
+      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/agreement`;
       
-      // Create FormData for API request
-      const formData = new FormData();
-      formData.append('file', new File([pdfBlob], `${selectedEmployee.firstName}_${selectedEmployee.lastName}_Agreement.pdf`, { type: 'application/pdf' }));
-      
-      // Send to API
-      const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(selectedEmployee.firstName + ' ' + selectedEmployee.lastName)}/agreement`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      await axios.post(apiUrl, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      );
-      
-      // Restore original styles
-      letterRef.current.style.cssText = originalStyle;
-      
-      console.log('Email API Response:', response.data);
-      toast.success(`Agreement letter sent to ${selectedEmployee.email} successfully!`);
+      });
+
+      toast.success('Agreement letter sent successfully!');
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error(`Failed to send email: ${error.message || 'Unknown error'}`);
+      toast.error('Failed to send agreement letter.');
     }
   };
 

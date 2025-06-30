@@ -29,6 +29,7 @@ export default function Attendance() {
   const [submitting, setSubmitting] = useState(false);
   const [employeeList, setEmployeeList] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [selectedEmpId, setSelectedEmpId] = useState(null);
 
   // Attendance statuses
   const statusOptions = [
@@ -117,10 +118,10 @@ export default function Attendance() {
   };
 
   // Check existing attendance for a specific date and employee
-  const checkExistingAttendance = async (fullName, date) => {
+  const checkExistingAttendance = async (empId, date) => {
     try {
-      console.log(`Checking attendance for ${fullName} on ${date}`);
-      const response = await axios.get(`http://localhost:8282/api/employee/bulk/${encodeURIComponent(fullName)}/${date}`);
+      console.log(`Checking attendance for employee ID ${empId} on ${date}`);
+      const response = await axios.get(`http://localhost:8282/api/employee/bulk/${empId}/${date}`);
       console.log('Existing attendance response:', response.data);
       return response.data;
     } catch (error) {
@@ -180,7 +181,7 @@ export default function Attendance() {
 
   // Handle status selection with reason (for both normal and modal)
   const handleStatusWithReason = async (status, reason) => {
-    if (!employeeName || employeeName.trim() === '') {
+    if (!employeeName || employeeName.trim() === '' || !selectedEmpId) {
       toast.error('Please enter employee name first', {
         duration: 3000,
         style: {
@@ -209,12 +210,11 @@ export default function Attendance() {
       console.log('User data:', storedUser);
       console.log('Using subAdmin ID:', subAdminId);
       
-      const encodedEmployeeName = encodeURIComponent(employeeName);
-      console.log(`Employee: ${employeeName}, Encoded: ${encodedEmployeeName}`);
+      console.log(`Employee ID: ${selectedEmpId}`);
       console.log(`Date: ${apiFormattedDate}`);
       
       // First check if attendance exists for this date
-      const existingAttendance = await checkExistingAttendance(employeeName, apiFormattedDate);
+      const existingAttendance = await checkExistingAttendance(selectedEmpId, apiFormattedDate);
       
       // Prepare payload
       const attendancePayload = [{
@@ -227,8 +227,8 @@ export default function Attendance() {
       
       let response;
       let existingStatus = '';
-      let updateUrl = `http://localhost:8282/api/employee/${subAdminId}/${encodedEmployeeName}/attendance/update/bulk`;
-      let addUrl = `http://localhost:8282/api/employee/${subAdminId}/${encodedEmployeeName}/attendance/add/bulk`;
+      let updateUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
       
       if (existingAttendance && existingAttendance.length > 0) {
         // Attendance exists, use PUT to update
@@ -466,7 +466,6 @@ export default function Attendance() {
       // Retrieve user details.
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const subAdminId = storedUser?.subAdminId || 2;
-      const encodedEmployeeName = encodeURIComponent(employeeName);
 
       const config = {
         headers: {
@@ -492,7 +491,7 @@ export default function Attendance() {
         promises.push(
           axios
             .post(
-              `http://localhost:8282/api/employee/${subAdminId}/${encodedEmployeeName}/attendance/add/bulk`,
+              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
               newRecords,
               config
             )
@@ -507,7 +506,7 @@ export default function Attendance() {
         promises.push(
           axios
             .put(
-              `http://localhost:8282/api/employee/${subAdminId}/${encodedEmployeeName}/attendance/update/bulk`,
+              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
               updateRecords,
               config
             )
@@ -566,6 +565,7 @@ export default function Attendance() {
       setSelectedDates([]);
       setAttendanceRecords([]);
       setSubmitting(false);
+      setSelectedEmpId(null);
     } catch (err) {
       setSubmitting(false);
       console.error("Error marking attendance:", err);
@@ -645,6 +645,7 @@ export default function Attendance() {
                         key={item.empId}
                         onClick={() => { 
                           setEmployeeName(item.fullName); 
+                          setSelectedEmpId(item.empId);
                           setSuggestions([]); 
                         }}
                         className={`px-3 py-2 cursor-pointer ${isDarkMode ? 'hover:bg-slate-600 text-white' : 'hover:bg-gray-100 text-gray-800'}`}

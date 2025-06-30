@@ -216,7 +216,7 @@ const JoiningLetter = () => {
 
       // 3. Send to backend as multipart/form-data
       const documentType = 'joining';
-      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(formData.employeeName)}/${documentType}`;
+      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/${documentType}`;
       const response = await axios.post(apiUrl, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -670,7 +670,7 @@ const JoiningLetter = () => {
 </div>
 <div style={{ marginBottom: '1.5rem' }}>
   <strong>Code of Conduct</strong><br />
-  All employees must adhere to the company’s code of conduct and maintain the highest standards of professionalism, ethics, and integrity in their work.
+  All employees must adhere to the company's code of conduct and maintain the highest standards of professionalism, ethics, and integrity in their work.
 </div>
 <div style={{ marginBottom: '1.5rem' }}>
   <strong>Acceptance of Offer</strong><br />
@@ -729,8 +729,8 @@ const JoiningLetter = () => {
                       <p>Subject: Acceptance of Employment Offer</p>
                       <p>Dear Sir/Madam,</p>
                       <p>I am pleased to accept the offer of employment for the position of <strong>{formData.employeeJobTitle || '[Job Title]'}</strong> at <strong>{subadmin?.registercompanyname || '[Company Name]'}</strong>, as mentioned in the appointment letter dated <strong>{formData.joiningDate ? new Date(formData.joiningDate).toLocaleDateString('en-GB') : '[Offer Date]'}</strong>.</p>
-                      <p>I have carefully read and understood all the terms and conditions, including the company’s policies, CTC structure, code of conduct, and confidentiality clauses. I confirm that I will adhere to these terms throughout my tenure.</p>
-                      <p>I understand that my employment is subject to the company’s policies and procedures, and I agree to comply with all rules and expectations set forth.</p>
+                      <p>I have carefully read and understood all the terms and conditions, including the company's policies, CTC structure, code of conduct, and confidentiality clauses. I confirm that I will adhere to these terms throughout my tenure.</p>
+                      <p>I understand that my employment is subject to the company's policies and procedures, and I agree to comply with all rules and expectations set forth.</p>
                       <p>I appreciate the opportunity to work with <strong>{subadmin?.registercompanyname || '[Company Name]'}</strong>, and I look forward to contributing to the success of the organization.</p>
 
                       <h4 className="font-semibold mt-6 mb-2">Acceptance Checklist</h4>

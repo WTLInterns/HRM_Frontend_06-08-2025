@@ -377,31 +377,27 @@ const AppointmentLetter = () => {
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', imgX, 0, imgWidth * ratio, imgHeight * ratio);
       
-      // Convert PDF to blob
+      // Convert PDF to blob for upload
       const pdfBlob = pdf.output('blob');
       
-      // Send to API
-      const formData = new FormData();
-      formData.append('file', new File([pdfBlob], `${selectedEmployee.firstName}_${selectedEmployee.lastName}_Appointment.pdf`, { type: 'application/pdf' }));
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', pdfBlob, 'appointment_letter.pdf');
       
-      const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(selectedEmployee.firstName + ' ' + selectedEmployee.lastName)}/appointment`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/appointment`;
+      
+      await axios.post(apiUrl, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      );
+      });
       
       // Restore original styles
       letterContainer.style.cssText = originalStyle;
       
-      console.log('Email API Response:', response.data);
       toast.success(`Appointment letter sent to ${selectedEmployee.email} successfully!`);
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error(`Failed to send email: ${error.message || 'Unknown error'}`);
+      toast.error('Failed to send appointment letter.');
     } finally {
       setSendingEmail(false);
     }

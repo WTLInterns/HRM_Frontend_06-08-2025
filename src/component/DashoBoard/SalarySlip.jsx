@@ -98,10 +98,24 @@ const calculateSalaryComponents = (yearlyCTC) => {
   }
 }
 
+// Helper to ensure date is in YYYY-MM-DD format
+const toApiDate = (dateStr) => {
+  // If already in YYYY-MM-DD, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  // If in DD-MM-YYYY, convert
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+    const [dd, mm, yyyy] = dateStr.split('-');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  // Otherwise, return as is
+  return dateStr;
+};
+
 export default function SalaryReport() {
   const { isDarkMode } = useApp();
   const { emp } = useApp();
   const [employeeName, setEmployeeName] = useState("");
+  const [selectedEmpId, setSelectedEmpId] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [validation, setValidation] = useState({ employeeName: '', startDate: '', endDate: '' });
@@ -197,8 +211,8 @@ export default function SalaryReport() {
   const validateFields = () => {
     let valid = true;
     let v = { employeeName: '', startDate: '', endDate: '' };
-    if (!employeeName.trim()) {
-      v.employeeName = 'Employee name is required';
+    if (!employeeName.trim() || !selectedEmpId) {
+      v.employeeName = 'Employee name is required and must be selected from the list';
       valid = false;
     }
     if (!startDate) {
@@ -221,9 +235,12 @@ export default function SalaryReport() {
       // Get company name from local storage (assuming it's stored when user logs in)
       const companyDetails = getCompanyDetails();
       
+      // Always send dates in YYYY-MM-DD format
+      const apiStartDate = toApiDate(startDate.trim());
+      const apiEndDate = toApiDate(endDate.trim());
       // Using the new API endpoint format
       const response = await axios.get(
-        `http://localhost:8282/api/employee/employee/${encodeURIComponent(user.registercompanyname)}/${encodeURIComponent(employeeName)}/attendance/report?startDate=${startDate}&endDate=${endDate}`
+        `http://localhost:8282/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -951,6 +968,7 @@ export default function SalaryReport() {
           className="px-4 py-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-slate-600"
           onMouseDown={() => {
             setEmployeeName(emp.fullName);
+            setSelectedEmpId(emp.empId);
             setFilteredSuggestions([]);
             setShowSuggestions(false);
           }}
@@ -1042,6 +1060,7 @@ export default function SalaryReport() {
                     setSalaryReport(null);
                     setShowReport(false);
                     setFilteredSuggestions([]);
+                    setSelectedEmpId(null);
                   }}
                   className={`px-4 py-2 text-white rounded-md transition-colors ${isDarkMode ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
                 >

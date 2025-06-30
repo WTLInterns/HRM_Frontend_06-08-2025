@@ -197,8 +197,7 @@ const AchievementCertificate = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('file', pdfBlob, 'AchievementCertificate.pdf');
       Object.entries(formData).forEach(([key, value]) => formDataToSend.append(key, value));
-      const employeeFullName = `${selectedEmployee.firstName} ${selectedEmployee.lastName}`;
-      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(employeeFullName)}/achievement`;
+      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/achievement`;
       await axios.post(apiUrl, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Certificate sent successfully!');
     } catch (error) {

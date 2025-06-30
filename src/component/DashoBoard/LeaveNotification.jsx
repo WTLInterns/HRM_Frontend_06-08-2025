@@ -78,7 +78,7 @@ const LeaveNotification = () => {
   const [error, setError] = useState(null);
   // For subadmin: employee list and selection
   const [employees, setEmployees] = useState([]);
-  const [selectedEmployeeFullName, setSelectedEmployeeFullName] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   // For autocomplete
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -123,7 +123,7 @@ useEffect(() => {
     // Check if it's a leave-related notification
     if (payload.data && payload.data.type && payload.data.type.startsWith('LEAVE_')) {
       // Auto-refresh leave data
-      if ((userRole === 'SUBADMIN' && selectedEmployeeFullName) || 
+      if ((userRole === 'SUBADMIN' && selectedEmployee) || 
           (userRole !== 'SUBADMIN' && userFullName)) {
         refreshLeaves();
       }
@@ -132,7 +132,7 @@ useEffect(() => {
 
   window.addEventListener('firebaseNotification', handleNotificationReceived);
   return () => window.removeEventListener('firebaseNotification', handleNotificationReceived);
-}, [userRole, selectedEmployeeFullName, userFullName]);
+}, [userRole, selectedEmployee, userFullName]);
 
   // Fetch employees for subadmin
   useEffect(() => {
@@ -152,24 +152,33 @@ useEffect(() => {
     fetchEmployees();
   }, [userRole, subadminId]);
 
-  // Fetch leaves when subadminId and selectedEmployeeFullName (for subadmin) or userFullName (for employee) changes
+  // Fetch leaves when subadminId and selectedEmployee (for subadmin) or userFullName (for employee) changes
   useEffect(() => {
     const fetchLeaves = async () => {
       setLoading(true);
       setError(null);
       try {
-        if (!subadminId || (userRole === 'SUBADMIN' && !selectedEmployeeFullName) || (userRole !== 'SUBADMIN' && !userFullName)) {
+        if (!subadminId || (userRole === 'SUBADMIN' && !selectedEmployee) || (userRole !== 'SUBADMIN' && !userFullName)) {
           setLeaveData([]);
           setLoading(false);
           return;
         }
-        let empNameToUse = userRole === 'SUBADMIN' ? selectedEmployeeFullName : userFullName;
-        if (!empNameToUse) {
+
+        let empIdToUse;
+        if (userRole === 'SUBADMIN') {
+          empIdToUse = selectedEmployee.empId;
+        } else {
+          const currentUser = employees.find(e => e.fullName === userFullName);
+          empIdToUse = currentUser?.empId;
+        }
+        
+        if (!empIdToUse) {
           setLeaveData([]);
           setLoading(false);
           return;
         }
-        const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empNameToUse}`);
+
+        const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
         if (!response.ok) throw new Error('Failed to fetch leave data');
         const data = await response.json();
         const mapped = data.map(item => ({
@@ -189,26 +198,32 @@ useEffect(() => {
         setLoading(false);
       }
     };
-    if ((userRole === 'SUBADMIN' && selectedEmployeeFullName) || (userRole !== 'SUBADMIN' && userFullName)) {
+    if ((userRole === 'SUBADMIN' && selectedEmployee) || (userRole !== 'SUBADMIN' && userFullName)) {
       fetchLeaves();
     } else {
       setLoading(false);
     }
-  }, [subadminId, selectedEmployeeFullName, userFullName, userRole]);
+  }, [subadminId, selectedEmployee, userFullName, userRole, employees]);
 
-  // Helper to refresh leave data
   // Helper to refresh leave data
   const refreshLeaves = async () => {
     setLoading(true);
     setError(null);
     try {
-      let empNameToUse = userRole === 'SUBADMIN' ? selectedEmployeeFullName : userFullName;
-      if (!subadminId || !empNameToUse) {
-        setError('User not logged in. Please login again.');
+      let empIdToUse;
+      if (userRole === 'SUBADMIN') {
+        empIdToUse = selectedEmployee?.empId;
+      } else {
+        const currentUser = employees.find(e => e.fullName === userFullName);
+        empIdToUse = currentUser?.empId;
+      }
+
+      if (!subadminId || !empIdToUse) {
+        setError('User not logged in or employee not selected. Please login again.');
         setLoading(false);
         return;
       }
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empNameToUse}`);
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
       if (!response.ok) throw new Error('Failed to fetch leave data');
       const data = await response.json();
       const mapped = data.map(item => ({
@@ -237,10 +252,10 @@ useEffect(() => {
     const leave = leaveData.find(l => l.id === id);
     if (!leave) return;
     const updatedLeave = { ...leave.original, status: 'Approved' };
-    let empNameToUse = userRole === 'SUBADMIN' ? selectedEmployeeFullName : userFullName;
+    
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empNameToUse}/${id}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
@@ -257,10 +272,9 @@ useEffect(() => {
     const leave = leaveData.find(l => l.id === id);
     if (!leave) return;
     const updatedLeave = { ...leave.original, status: 'Rejected' };
-    let empNameToUse = userRole === 'SUBADMIN' ? selectedEmployeeFullName : userFullName;
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empNameToUse}/${id}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
@@ -282,10 +296,12 @@ useEffect(() => {
 
   const handleConfirmDelete = async () => {
     if (!deleteTargetId) return;
-    let empNameToUse = userRole === 'SUBADMIN' ? selectedEmployeeFullName : userFullName;
+    const leaveToDelete = leaveData.find(l => l.id === deleteTargetId);
+    if (!leaveToDelete) return;
+    
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${encodeURIComponent(empNameToUse)}/${deleteTargetId}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leaveToDelete.original.employee.empId}/${deleteTargetId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete leave');
@@ -419,7 +435,7 @@ useEffect(() => {
       setSearchTerm(e.target.value);
       setShowSuggestions(true);
       // Only clear selectedEmployeeFullName if user clears the box
-      if (e.target.value === '') setSelectedEmployeeFullName('');
+      if (e.target.value === '') setSelectedEmployee(null);
     }}
     onFocus={() => setShowSuggestions(true)}
     autoComplete="off"
@@ -446,12 +462,12 @@ useEffect(() => {
           key={emp.empId || emp.fullName}
           style={{ padding: '8px 12px', cursor: 'pointer' }}
           onClick={() => {
-            setSelectedEmployeeFullName(emp.fullName);
+            setSelectedEmployee(emp);
             setSearchTerm(emp.fullName);
             setShowSuggestions(false);
           // Immediately fetch leaves for this employee
             if (userRole === 'SUBADMIN') {
-              // fetchLeaves is an inner function, so trigger by updating selectedEmployeeFullName
+              // fetchLeaves is an inner function, so trigger by updating selectedEmployee
               // which is already handled by the useEffect
             }
           }}
@@ -464,7 +480,7 @@ useEffect(() => {
   {/* Prompt below input when empty */}
  
 </div>
-      {userRole === 'SUBADMIN' && !selectedEmployeeFullName && (
+      {userRole === 'SUBADMIN' && !selectedEmployee && (
         <div style={{margin: '1rem 0', color: 'orange'}}>Please select an employee to view leave requests.</div>
       )}
       <div className="leave-actions-row" style={{marginTop: '1rem', display: 'flex', gap: '1rem'}}>

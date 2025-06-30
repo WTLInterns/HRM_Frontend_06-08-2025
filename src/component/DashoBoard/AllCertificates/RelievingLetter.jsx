@@ -674,12 +674,9 @@ const RelievingLetter = () => {
       const formData = new FormData();
       formData.append('file', pdfFile);
       
-      // Get employee full name
-      const employeeFullName = `${selectedEmployee.firstName} ${selectedEmployee.lastName}`;
-      
       // Send the document using the backend API
       const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(employeeFullName)}/relieving`,
+        `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/relieving`,
         formData,
         {
           headers: {

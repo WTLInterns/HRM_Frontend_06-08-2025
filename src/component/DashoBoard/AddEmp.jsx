@@ -83,6 +83,9 @@ export default function AddEmp() {
   // Add this state for confirm dialog
   const [confirmDialog, setConfirmDialog] = useState({ open: false, type: '', empId: null });
 
+  // Add state for send email loading
+  const [sendEmailLoading, setSendEmailLoading] = useState(false);
+
   useEffect(() => {
     // Get the subadmin data from localStorage
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -463,7 +466,7 @@ export default function AddEmp() {
 
       // Use the correct API endpoint for updating an employee based on the backend code
       const response = await axios.put(
-        `${API_URL}/api/employee/update-employee/${subadminId}/${encodeURIComponent(fullName)}`,
+        `${API_URL}/api/employee/update-employee/${subadminId}/${selectedEmployee.empId}`,
       formData,
       {
         headers: {
@@ -566,31 +569,26 @@ const confirmedDeleteEmp = async (empId) => {
 
 // Confirmed send email logic
 const confirmedSendLoginDetails = async (empId) => {
+  setConfirmDialog({ open: false, type: '', empId: null }); // Close dialog immediately
+  setSendEmailLoading(true); // Show loading overlay
   try {
-    // Find the employee by empId from the list
     const employee = employees.find((e) => e.empId === empId);
     if (!employee) {
       toast.error("Employee not found");
+      setSendEmailLoading(false);
       return;
     }
-    const fullName = `${employee.firstName} ${employee.lastName}`;
-    // Prefer using email for the new API
-    const email = employee.email;
-    
-    console.log(
-      `Sending login details to employee ${fullName} under subadmin ${subadminId}. Email: ${email}`
-    );
-    // New API: use email as query parameter, no body needed
-    const response = await axios.post(
-      `${API_URL}/api/employee/${subadminId}/send-login-details?email=${encodeURIComponent(email)}`
+    await axios.post(
+      `${API_URL}/api/employee/${subadminId}/send-login-details?empId=${empId}`
     );
     toast.success("Login details sent successfully");
-    setConfirmDialog({ open: false, type: '', empId: null });
   } catch (err) {
     toast.error(
       "Failed to send login details: " + (err.response?.data || err.message)
     );
     console.error(err);
+  } finally {
+    setSendEmailLoading(false); // Hide loading overlay
   }
 };
 
@@ -2555,33 +2553,50 @@ const handleEditEmp = (employee) => {
         </div>
       )}
       {/* Render ConfirmDialog for delete and email actions */}
-      <ConfirmDialog
-        open={confirmDialog.open}
-        title={
-          confirmDialog.type === 'delete'
-            ? 'Confirm Delete'
-            : confirmDialog.type === 'sendEmail'
-            ? 'Send Login Details'
-            : ''
-        }
-        message={
-          confirmDialog.type === 'delete'
-            ? 'Are you sure you want to delete this employee? This action cannot be undone.'
-            : confirmDialog.type === 'sendEmail'
-            ? 'Send login details to this employee?'
-            : ''
-        }
-        confirmText={confirmDialog.type === 'delete' ? 'Delete' : 'Send'}
-        cancelText="Cancel"
-        onConfirm={() => {
-          if (confirmDialog.type === 'delete') {
-            confirmedDeleteEmp(confirmDialog.empId);
-          } else if (confirmDialog.type === 'sendEmail') {
-            confirmedSendLoginDetails(confirmDialog.empId);
+      {!sendEmailLoading && (
+        <ConfirmDialog
+          open={confirmDialog.open}
+          title={
+            confirmDialog.type === 'delete'
+              ? 'Confirm Delete'
+              : confirmDialog.type === 'sendEmail'
+              ? 'Send Login Details'
+              : ''
           }
-        }}
-        onCancel={() => setConfirmDialog({ open: false, type: '', empId: null })}
-      />
+          message={
+            confirmDialog.type === 'delete'
+              ? 'Are you sure you want to delete this employee? This action cannot be undone.'
+              : confirmDialog.type === 'sendEmail'
+              ? 'Send login details to this employee?'
+              : ''
+          }
+          confirmText={confirmDialog.type === 'delete' ? 'Delete' : 'Send'}
+          cancelText="Cancel"
+          onConfirm={() => {
+            if (confirmDialog.type === 'delete') {
+              confirmedDeleteEmp(confirmDialog.empId);
+            } else if (confirmDialog.type === 'sendEmail') {
+              confirmedSendLoginDetails(confirmDialog.empId);
+            }
+          }}
+          onCancel={() => setConfirmDialog({ open: false, type: '', empId: null })}
+        />
+      )}
+      {/* Loading overlay for sending email */}
+      {sendEmailLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-slate-900 text-white px-8 py-6 rounded-lg flex flex-col items-center shadow-2xl border-2 border-blue-400 animate-fadeIn">
+            <div className="mb-4">
+              <svg className="animate-spin h-10 w-10 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+            <div className="text-lg font-semibold mb-1">Sending details</div>
+            <div className="text-sm text-blue-200">Please wait...</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -698,7 +698,7 @@ const TerminationLetter = () => {
       
       // Send the document using the backend API
       const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(employeeFullName)}/termination`,
+        `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/termination`,
         formData,
         {
           headers: {

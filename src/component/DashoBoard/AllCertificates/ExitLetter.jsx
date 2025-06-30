@@ -354,70 +354,24 @@ const ExitLetter = () => {
         }
       });
       
-      // Generate PDF with html2canvas - optimized settings for email
-      const canvas = await html2canvas(letterRef.current, {
-        scale: 1.3, // Lower scale for better text/image ratio and to fit on one page
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        imageTimeout: 15000,
-        letterRendering: true,
-        foreignObjectRendering: false,
-        onclone: (clonedDoc) => {
-          // Process all images in the cloned document to ensure proper sizing
-          const clonedImages = clonedDoc.querySelectorAll('img');
-          clonedImages.forEach(img => {
-            img.crossOrigin = 'Anonymous';
-            
-            // Make sure the cloned document has the same image size constraints
-            if (img.classList.contains('h-20') || img.classList.contains('h-24')) {
-              img.style.maxHeight = '70px';
-              img.style.height = 'auto';
-              img.style.width = 'auto';
-              img.style.maxWidth = '180px';
-            } else if (img.classList.contains('h-16') || img.classList.contains('h-12')) {
-              img.style.maxHeight = '50px';
-              img.style.height = 'auto';
-              img.style.width = 'auto';
-              img.style.maxWidth = '150px';
-            } else if (img.src.includes('stampImg')) {
-              img.style.maxHeight = '90px';
-              img.style.maxWidth = '90px';
-              img.style.height = 'auto';
-              img.style.width = 'auto';
-            }
-          });
-        }
-      });
-      
-      // Create PDF from canvas
+      // Generate PDF
+      const canvas = await html2canvas(letterRef.current, { scale: 2, useCORS: true });
+      const pdf = new jsPDF('p', 'mm', 'a4');
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      });
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      pdf.addImage(imgData, 'PNG', imgX, 0, imgWidth * ratio, imgHeight * ratio);
-      
-      // Convert PDF to blob for upload
+      // Convert PDF to blob
       const pdfBlob = pdf.output('blob');
       
       // Create FormData for API request
       const formData = new FormData();
-      formData.append('file', new File([pdfBlob], `${selectedEmployee.firstName}_${selectedEmployee.lastName}_Exit.pdf`, { type: 'application/pdf' }));
+      formData.append('file', pdfBlob, `ExitLetter_${selectedEmployee.firstName}.pdf`);
       
       // Send to API
       const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(selectedEmployee.firstName + ' ' + selectedEmployee.lastName)}/exit`,
+        `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/exit`,
         formData,
         {
           headers: {
@@ -452,7 +406,7 @@ const ExitLetter = () => {
       toast.success(`Exit letter sent to ${selectedEmployee.email} successfully!`);
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error(`Failed to send email: ${error.message || 'Unknown error'}`);
+      toast.error('Failed to send email');
     }
   };
 

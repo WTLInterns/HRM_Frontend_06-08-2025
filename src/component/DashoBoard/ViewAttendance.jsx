@@ -12,6 +12,7 @@ import { useApp } from "../../context/AppContext";
 export default function ViewAttendance() {
   const [loggedUser, setLoggedUser] = useState(null);
   const [empFullName, setEmpFullName] = useState("");
+  const [selectedEmpId, setSelectedEmpId] = useState(null);
   const [employeeList, setEmployeeList] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [empName, setEmpName] = useState("");
@@ -84,9 +85,8 @@ export default function ViewAttendance() {
     setError("");
     try {
       const subadminId = loggedUser.id;
-      const encodedName = encodeURIComponent(empFullName);
       const res = await axios.get(
-        `http://localhost:8282/api/employee/${subadminId}/${encodedName}/attendance`
+        `http://localhost:8282/api/employee/${subadminId}/${selectedEmpId}/attendance`
       );
       setAttendanceData(res.data);
       setEmpName(res.data[0]?.employee?.firstName || "Employee");
@@ -107,6 +107,7 @@ export default function ViewAttendance() {
     setEmpName("");
     setSelectedDate(null);
     setSuggestions([]);
+    setSelectedEmpId(null);
   };
 
   const handleMonthChange = ({ activeStartDate, view }) => {
@@ -139,7 +140,7 @@ export default function ViewAttendance() {
     'Week Off': 'bg-blue-800 text-white',
     'Holiday': isDarkMode ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-800', // Red in dark mode, normal in light
   };
-// REPLACE your tileContent function in ViewAttendance.jsx with this:
+
 const tileContent = ({ date, view }) => {
   if (view === 'month') {
     const d = new Date(date);
@@ -215,7 +216,7 @@ const tileContent = ({ date, view }) => {
                 {suggestions.map(item => (
                   <li
                     key={item.empId}
-                    onClick={() => { setEmpFullName(item.fullName); setSuggestions([]); }}
+                    onClick={() => { setEmpFullName(item.fullName); setSelectedEmpId(item.empId); setSuggestions([]); }}
                     className={`px-3 py-2 hover:${isDarkMode ? "bg-slate-700" : "bg-blue-100"} cursor-pointer ${isDarkMode ? "text-gray-100" : "text-gray-900"}`}
                   >{item.fullName}</li>
                 ))}
@@ -257,7 +258,7 @@ const tileContent = ({ date, view }) => {
               <button
                 onClick={() => {
                   // Use filteredAttendanceData for the current month/year
-                  let empObj = employeeList.find(e => `${e.firstName} ${e.lastName}`.toLowerCase() === empFullName.trim().toLowerCase());
+                  let empObj = employeeList.find(e => e.empId === selectedEmpId);
                   if (!empObj) empObj = employeeList[0] || {};
                   exportAttendanceToExcel(filteredAttendanceData, empObj);
                 }}

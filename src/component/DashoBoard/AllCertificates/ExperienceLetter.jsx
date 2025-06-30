@@ -670,46 +670,29 @@ const ExperienceLetter = () => {
         }
       }
       
-      // Get the PDF as blob
+      // Convert PDF to blob
       const pdfBlob = pdf.output('blob');
-      
-      // Create File object from blob
-      const pdfFile = new File(
-        [pdfBlob], 
-        `${selectedEmployee.firstName}_${selectedEmployee.lastName}_Experience_Letter.pdf`, 
-        { type: 'application/pdf' }
-      );
       
       // Create FormData for API request
       const formData = new FormData();
-      formData.append('file', pdfFile);
+      formData.append('file', pdfBlob, `ExperienceLetter_${selectedEmployee.firstName}.pdf`);
       
-      // Get employee full name
-      const employeeFullName = `${selectedEmployee.firstName} ${selectedEmployee.lastName}`;
-      
-      // Send the document using the backend API
+      // Send to API
       const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(employeeFullName)}/experience`,
+        `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/experience`,
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+            'Content-Type': 'multipart/form-data'
+          }
         }
       );
       
-      console.log('API Response:', response.data);
-      
-      if (response.data.emailSent) {
-        toast.success(`Experience letter sent to ${selectedEmployee.email} successfully!`);
-      } else if (response.data.filePath) {
-        toast.success('Experience letter saved successfully, but email could not be sent.');
-      } else {
-        toast.error('Failed to process the experience letter.');
-      }
+      console.log('Email API Response:', response.data);
+      toast.success(`Experience letter sent to ${selectedEmployee.email} successfully!`);
     } catch (error) {
-      console.error("Error sending experience letter:", error);
-      toast.error("Failed to send experience letter: " + (error.response?.data?.error || error.message));
+      console.error('Error sending email:', error);
+      toast.error('Failed to send email');
     } finally {
       setSendingEmail(false);
     }

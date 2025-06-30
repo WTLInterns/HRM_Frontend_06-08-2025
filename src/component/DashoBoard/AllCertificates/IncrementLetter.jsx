@@ -398,16 +398,16 @@ const IncrementLetter = () => {
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
       pdf.addImage(imgData, 'PNG', imgX, 0, imgWidth * ratio, imgHeight * ratio);
       
-      // Convert PDF to blob for upload
+      // Convert PDF to blob
       const pdfBlob = pdf.output('blob');
       
       // Create FormData for API request
       const formData = new FormData();
-      formData.append('file', new File([pdfBlob], `${selectedEmployee.firstName}_${selectedEmployee.lastName}_Increment.pdf`, { type: 'application/pdf' }));
+      formData.append('file', pdfBlob, `IncrementLetter_${selectedEmployee.firstName}.pdf`);
       
       // Send to API
       const response = await axios.post(
-        `http://localhost:8282/api/certificate/send/${subadmin.id}/${encodeURIComponent(selectedEmployee.firstName + ' ' + selectedEmployee.lastName)}/increment`,
+        `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/increment`,
         formData,
         {
           headers: {
@@ -442,7 +442,7 @@ const IncrementLetter = () => {
       toast.success(`Increment letter sent to ${selectedEmployee.email} successfully!`);
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error(`Failed to send email: ${error.message || 'Unknown error'}`);
+      toast.error('Failed to send email');
     }
   };
 
