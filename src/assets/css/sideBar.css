@@ -1,0 +1,47 @@
+/* Sidebar Styles */
+.sidebar {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu-item {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-menu-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-menu-link:hover {
+  background-color: #e9ecef;
+}
+
+.sidebar-menu-link.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Dark mode */
+.dark-mode .sidebar {
+  background-color: #343a40;
+}
+
+.dark-mode .sidebar-menu-link {
+  color: #fff;
+}
+
+.dark-mode .sidebar-menu-link:hover {
+  background-color: #495057;
+} 

@@ -1,0 +1,146 @@
+/* Certificate Styles */
+.certificate {
+  background-color: #fff;
+  padding: 2rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  background: linear-gradient(120deg, rgba(255,255,255,1) 0%, rgba(245,250,255,1) 100%);
+}
+
+.certificate-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.certificate-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.certificate-body {
+  line-height: 1.6;
+}
+
+.certificate-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Print styles */
+@media print {
+  @page {
+    size: portrait;
+    margin: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .certificate {
+    width: 21cm;
+    min-height: 29.7cm;
+    padding: 1cm;
+    margin: 0 auto;
+    box-shadow: none;
+    background: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .certificate * {
+    visibility: visible !important;
+    color: black !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .certificate img {
+    max-width: 100%;
+    height: auto;
+    display: inline-block !important;
+    visibility: visible !important;
+  }
+
+  .certificate div {
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  .certificate div[style*="position: absolute"] {
+    position: absolute !important;
+  }
+
+  .certificate div[style*="font-family"] {
+    font-family: inherit !important;
+  }
+
+  .certificate div[style*="font-size"] {
+    font-size: inherit !important;
+  }
+
+  .certificate div[style*="color"] {
+    color: inherit !important;
+  }
+
+  .certificate div[style*="text-align"] {
+    text-align: inherit !important;
+  }
+
+  .certificate div[style*="top"] {
+    top: inherit !important;
+  }
+
+  .certificate div[style*="left"] {
+    left: inherit !important;
+  }
+
+  .certificate div[style*="width"] {
+    width: inherit !important;
+  }
+
+  .certificate div[style*="height"] {
+    height: inherit !important;
+  }
+
+  .certificate div[style*="transform"] {
+    transform: inherit !important;
+  }
+
+  .certificate div[style*="z-index"] {
+    z-index: inherit !important;
+  }
+
+  .certificate div[style*="background"] {
+    background: transparent !important;
+  }
+
+  .certificate div[style*="pointer-events"] {
+    pointer-events: none !important;
+  }
+
+  .certificate div[style*="text-shadow"] {
+    text-shadow: inherit !important;
+  }
+
+  .certificate div[style*="padding"] {
+    padding: inherit !important;
+  }
+
+  .certificate div[style*="line-height"] {
+    line-height: inherit !important;
+  }
+
+  .certificate div[style*="font-weight"] {
+    font-weight: inherit !important;
+  }
+} 
