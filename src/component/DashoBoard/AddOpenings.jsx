@@ -4,6 +4,7 @@ import { useApp } from "../../context/AppContext";
 import { useLocation } from "react-router-dom";
 import ConfirmDialog from "./ConfirmDialog";
 import { toast } from "react-toastify";
+import firebaseService from "../../services/firebaseService";
 
 const ROLE_OPTIONS = [
   "Java Full Stack",
@@ -87,6 +88,24 @@ const AddOpenings = () => {
     setForm({ ...form, [name]: value });
   };
 
+  // Helper function to get FCM tokens
+  const getFCMTokens = async () => {
+    try {
+      // Get current subadmin's FCM token
+      const subadminToken = await firebaseService.generateToken();
+
+      console.log('🔍 Subadmin FCM token for job opening:', subadminToken?.substring(0, 20) + '...');
+      console.log('📝 Note: Employee FCM tokens will be fetched from database by backend');
+
+      // Backend will fetch all employee tokens from database using subadminId
+      // We only need to provide subadminToken for validation/logging
+      return { subadminToken };
+    } catch (error) {
+      console.error('Error getting FCM tokens:', error);
+      return { subadminToken: 'default_subadmin_token' };
+    }
+  };
+
   const handleAddOrEdit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -95,8 +114,17 @@ const AddOpenings = () => {
         await axios.put(`http://localhost:8282/api/openings/${subadminId}/${editingId}`, form);
         toast.success("Opening updated successfully!");
       } else {
-        await axios.post(`http://localhost:8282/api/openings/${subadminId}`, form);
-        toast.success("Opening added successfully!");
+        console.log('🚀 Creating new job opening...');
+
+        // Get FCM token for notification
+        const { subadminToken } = await getFCMTokens();
+
+        const apiUrl = `http://localhost:8282/api/openings/${subadminId}/${subadminToken}`;
+        console.log('📝 Job opening API URL:', apiUrl);
+        console.log('📝 Form data:', form);
+
+        await axios.post(apiUrl, form);
+        toast.success("Opening added successfully! All employees will be notified.");
       }
       setShowModal(false);
       setForm({
@@ -104,13 +132,14 @@ const AddOpenings = () => {
         location: "",
         siteMode: SITE_MODE_OPTIONS[0],
         positions: 1,
-        experience: EXPERIENCE_OPTIONS[0],
+        exprience: EXPERIENCE_OPTIONS[0],  // Note: matches entity field name (with typo)
         description: "",
         workType: JOB_TYPE_OPTIONS[0]
       });
       setEditingId(null);
       fetchOpenings();
     } catch (error) {
+      console.error('Error saving opening:', error);
       toast.error("Error occurred while saving opening. Please try again.");
     }
     setLoading(false);
@@ -118,13 +147,13 @@ const AddOpenings = () => {
 
   const handleEdit = (item) => {
     setForm({
-      role: item.role,
-      location: item.location,
-      siteMode: item.siteMode,
-      positions: item.positions,
-      exprience: item.exprience,
-      description: item.description,
-      workType: item.workType
+      role: item.role || "",
+      location: item.location || "",
+      siteMode: item.siteMode || SITE_MODE_OPTIONS[0],
+      positions: item.positions || 1,
+      exprience: item.exprience || EXPERIENCE_OPTIONS[0],
+      description: item.description || "",
+      workType: item.workType || JOB_TYPE_OPTIONS[0]
     });
     setEditingId(item.id);
     setShowModal(true);
@@ -162,7 +191,7 @@ const AddOpenings = () => {
 
   // Filter openings by search
   const filteredOpenings = openings.filter(
-    o => o.role.toLowerCase().includes(search.toLowerCase())
+    o => o.role && o.role.toLowerCase().includes((search || "").toLowerCase())
   );
 
   // Pagination logic
@@ -209,10 +238,10 @@ const AddOpenings = () => {
                     : (idx % 2 === 0 ? 'bg-white' : 'bg-blue-50')}
                   hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors duration-150`}
               >
-                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.role}</td>
-                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.positions}</td>
-                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.location}</td>
-                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.exprience}</td>
+                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.role || 'N/A'}</td>
+                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.positions || 0}</td>
+                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.location || 'N/A'}</td>
+                <td className="px-2 py-1 text-center align-middle font-normal text-base border-b border-blue-100 dark:border-slate-700">{o.exprience || 'N/A'}</td>
                 <td className="px-2 py-1 text-center align-middle border-b border-blue-100 dark:border-slate-700">
                   <div className="flex items-center justify-center gap-2">
                     <button

@@ -7,6 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
+import firebaseService from '../../services/firebaseService';
 
   /**
    * Component for managing leave notifications and approvals.
@@ -119,13 +120,41 @@ const LeaveNotification = () => {
 useEffect(() => {
   const handleNotificationReceived = (event) => {
     const payload = event.detail;
-    
-    // Check if it's a leave-related notification
-    if (payload.data && payload.data.type && payload.data.type.startsWith('LEAVE_')) {
-      // Auto-refresh leave data
-      if ((userRole === 'SUBADMIN' && selectedEmployee) || 
-          (userRole !== 'SUBADMIN' && userFullName)) {
-        refreshLeaves();
+
+    // Handle different notification types
+    if (payload.data && payload.data.type && payload.notification) {
+      const { title, body } = payload.notification;
+
+      // Leave-related notifications
+      if (payload.data.type.startsWith('LEAVE_')) {
+        if (payload.data.type === 'LEAVE_APPLIED') {
+          toast.info(`📅 ${title}: ${body}`, { autoClose: 5000 });
+        } else if (payload.data.type === 'LEAVE_APPROVED') {
+          toast.success(`✅ ${title}: ${body}`, { autoClose: 5000 });
+        } else if (payload.data.type === 'LEAVE_REJECTED') {
+          toast.error(`❌ ${title}: ${body}`, { autoClose: 5000 });
+        }
+
+        // Auto-refresh leave data
+        if ((userRole === 'SUBADMIN' && selectedEmployee) ||
+            (userRole !== 'SUBADMIN' && userFullName)) {
+          refreshLeaves();
+        }
+      }
+
+      // Job opening notifications
+      else if (payload.data.type === 'JOB_OPENING') {
+        toast.info(`🎯 ${title}: ${body}`, { autoClose: 7000 });
+      }
+
+      // Resume submission notifications
+      else if (payload.data.type === 'RESUME_SUBMITTED') {
+        toast.info(`📄 ${title}: ${body}`, { autoClose: 6000 });
+      }
+
+      // Generic notifications
+      else {
+        toast.info(`📢 ${title}: ${body}`, { autoClose: 5000 });
       }
     }
   };
@@ -247,22 +276,65 @@ useEffect(() => {
 
 
 
+  // Helper function to get FCM tokens from the leave data
+  const getFCMTokens = async (leaveData) => {
+    try {
+      // Get employee's FCM token from the leave data
+      const employeeFcmToken = leaveData?.original?.employee?.fcmToken;
+
+      // Get subadmin's FCM token from the leave data
+      const subadminFcmToken = leaveData?.original?.subadmin?.fcmToken;
+
+      console.log('🔍 Employee FCM Token from DB:', employeeFcmToken?.substring(0, 20) + '...');
+      console.log('🔍 Subadmin FCM Token from DB:', subadminFcmToken?.substring(0, 20) + '...');
+
+      // Use stored tokens if available, otherwise generate new ones
+      let userToken = employeeFcmToken;
+      let subadminToken = subadminFcmToken;
+
+      if (!userToken) {
+        console.log('⚠️ Employee FCM token not found in DB, generating new one');
+        userToken = await firebaseService.generateToken();
+      }
+
+      if (!subadminToken) {
+        console.log('⚠️ Subadmin FCM token not found in DB, generating new one');
+        subadminToken = await firebaseService.generateToken();
+      }
+
+      console.log('✅ Using Employee Token:', userToken?.substring(0, 20) + '...');
+      console.log('✅ Using Subadmin Token:', subadminToken?.substring(0, 20) + '...');
+
+      return { userToken, subadminToken };
+    } catch (error) {
+      console.error('Error getting FCM tokens:', error);
+      return { userToken: 'default_user_token', subadminToken: 'default_subadmin_token' };
+    }
+  };
+
   // Approve/Reject handlers with PUT API
   const handleApprove = async (id) => {
     const leave = leaveData.find(l => l.id === id);
     if (!leave) return;
     const updatedLeave = { ...leave.original, status: 'Approved' };
-    
+
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}`, {
+      console.log('🚀 Approving leave for employee:', leave.original.employee.fullName);
+
+      // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
+      const { userToken, subadminToken } = await getFCMTokens(leave);
+
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
       });
       if (!response.ok) throw new Error('Failed to update leave');
+      toast.success('Leave approved successfully! Employee will be notified.');
       await refreshLeaves();
     } catch (err) {
+      toast.error(err.message || 'Failed to approve leave');
       setError(err.message || 'Unknown error');
       setLoading(false);
     }
@@ -274,14 +346,21 @@ useEffect(() => {
     const updatedLeave = { ...leave.original, status: 'Rejected' };
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}`, {
+      console.log('🚀 Rejecting leave for employee:', leave.original.employee.fullName);
+
+      // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
+      const { userToken, subadminToken } = await getFCMTokens(leave);
+
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
       });
       if (!response.ok) throw new Error('Failed to update leave');
+      toast.success('Leave rejected successfully! Employee will be notified.');
       await refreshLeaves();
     } catch (err) {
+      toast.error(err.message || 'Failed to reject leave');
       setError(err.message || 'Unknown error');
       setLoading(false);
     }

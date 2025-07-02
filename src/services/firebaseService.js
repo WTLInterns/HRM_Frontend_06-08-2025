@@ -9,12 +9,30 @@ class FirebaseService {
 
   async requestPermission() {
     try {
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        console.log('❌ This browser does not support notifications');
+        return false;
+      }
+
+      // Check current permission status
+      if (Notification.permission === 'granted') {
+        console.log('✅ Notification permission already granted');
+        return true;
+      }
+
+      if (Notification.permission === 'denied') {
+        console.log('❌ Notification permission denied by user');
+        return false;
+      }
+
+      // Request permission
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         console.log('✅ Notification permission granted.');
         return true;
       } else {
-        console.log('❌ Unable to get permission to notify.');
+        console.log('❌ Unable to get permission to notify. Permission:', permission);
         return false;
       }
     } catch (error) {
@@ -25,19 +43,39 @@ class FirebaseService {
 
   async generateToken() {
     try {
+      console.log('🔄 Checking notification permission...');
       const permissionGranted = await this.requestPermission();
       if (!permissionGranted) {
         throw new Error('Notification permission denied');
       }
+
+      console.log('🔄 Generating FCM token...');
+
+      // Check if service worker is available
+      if (!('serviceWorker' in navigator)) {
+        throw new Error('Service Worker not supported');
+      }
+
+      // Register service worker if not already registered
+      try {
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log('✅ Service Worker registered:', registration);
+      } catch (swError) {
+        console.log('⚠️ Service Worker registration failed:', swError);
+        // Continue anyway, might already be registered
+      }
+
       const token = await getToken(messaging, {
-        vapidKey: "BE3cALPMvuobCzLQeyEwvAVBTDXqt_FOBCUn6pckYGIAwbqW4mIEA_zBxXnrVHZbkG-0zbU5JZxoq4phFKAMwdc"   });
+        vapidKey: "BE3cALPMvuobCzLQeyEwvAVBTDXqt_FOBCUn6pckYGIAwbqW4mIEA_zBxXnrVHZbkG-0zbU5JZxoq4phFKAMwdc"
+      });
 
       if (token) {
-        console.log('✅ FCM Token generated:', token);
+        console.log('✅ FCM Token generated successfully');
+        console.log('Token preview:', token.substring(0, 20) + '...');
         this.currentToken = token;
         return token;
       } else {
-        throw new Error('No registration token available');
+        throw new Error('No registration token available - check Firebase config and VAPID key');
       }
     } catch (error) {
       console.error('❌ Error generating FCM token:', error);
@@ -47,8 +85,10 @@ class FirebaseService {
 
   async registerTokenWithBackend(userId, userType) {
     try {
+      console.log('🔄 Starting FCM token generation for user:', userId, 'type:', userType);
       const token = await this.generateToken();
-      
+      console.log('🔄 FCM token generated, registering with backend...');
+
       const response = await fetch('http://localhost:8282/api/fcm/register-token', {
         method: 'POST',
         headers: {
@@ -62,35 +102,49 @@ class FirebaseService {
       });
 
       if (response.ok) {
-        console.log('✅ FCM token registered successfully');
+        console.log('✅ FCM token registered successfully with backend');
         return true;
       } else {
         const errorText = await response.text();
-        console.error('❌ Failed to register FCM token:', errorText);
+        console.error('❌ Failed to register FCM token with backend:', response.status, errorText);
         return false;
       }
     } catch (error) {
-      console.error('❌ Error registering FCM token:', error);
+      console.error('❌ Error in FCM token registration process:', error);
       return false;
     }
   }
 
   setupForegroundMessageListener() {
+    if (!messaging) {
+      console.warn('⚠️ Firebase messaging not initialized');
+      return;
+    }
+
     onMessage(messaging, (payload) => {
       console.log('📱 Message received in foreground:', payload);
-      
+
       // Dispatch custom event for components to listen to
       const event = new CustomEvent('firebaseNotification', {
         detail: payload
       });
       window.dispatchEvent(event);
-      
+
       // Show toast notification instead of alert
       if (payload.notification) {
-        // You can integrate with react-toastify here
         console.log(`📢 ${payload.notification.title}: ${payload.notification.body}`);
+
+        // Show browser notification if permission granted
+        if (Notification.permission === 'granted') {
+          new Notification(payload.notification.title, {
+            body: payload.notification.body,
+            icon: '/favicon.ico'
+          });
+        }
       }
     });
+
+    console.log('✅ Firebase foreground message listener setup complete');
   }
 
   async getNotifications(userType, userId) {

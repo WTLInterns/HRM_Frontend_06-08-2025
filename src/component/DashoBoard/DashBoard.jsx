@@ -26,7 +26,13 @@ import "./animations.css";
 import DashoBoardRouter from "./DashboardRouter/DashoBoardRouter";
 import Reminders from "./Reminders";
 import LeaveNotification from "./LeaveNotification";
+import NotificationTest from "./NotificationTest";
+import FCMTest from "./FCMTest";
+import TokenDebugger from "./TokenDebugger";
+import NotificationDebugger from "./NotificationDebugger";
 import NotificationBell from "../../components/NotificationBell";
+import firebaseService from "../../services/firebaseService";
+import { toast } from "react-toastify";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -465,6 +471,73 @@ const Dashboard = () => {
     console.log("Dashboard: Theme changed to", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
+  // Initialize FCM for notifications
+  useEffect(() => {
+    const initializeFCM = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.id) return;
+
+        console.log('🔄 Initializing FCM for dashboard...');
+
+        // Setup FCM token and register with backend
+        const userType = user.role === 'SUB_ADMIN' ? 'SUBADMIN' : 'EMPLOYEE';
+        await firebaseService.registerTokenWithBackend(user.id, userType);
+
+        // Setup foreground message listener
+        firebaseService.setupForegroundMessageListener();
+
+        console.log('✅ FCM initialized successfully for dashboard');
+      } catch (error) {
+        console.error('❌ Failed to initialize FCM for dashboard:', error);
+      }
+    };
+
+    initializeFCM();
+  }, []);
+
+  // Global notification listener for all notification types
+  useEffect(() => {
+    const handleNotificationReceived = (event) => {
+      const payload = event.detail;
+
+      // Handle different notification types
+      if (payload.data && payload.data.type && payload.notification) {
+        const { title, body } = payload.notification;
+
+        // Leave-related notifications
+        if (payload.data.type.startsWith('LEAVE_')) {
+          if (payload.data.type === 'LEAVE_APPLIED') {
+            toast.info(`📅 ${title}: ${body}`, { autoClose: 5000 });
+          } else if (payload.data.type === 'LEAVE_APPROVED') {
+            toast.success(`✅ ${title}: ${body}`, { autoClose: 5000 });
+          } else if (payload.data.type === 'LEAVE_REJECTED') {
+            toast.error(`❌ ${title}: ${body}`, { autoClose: 5000 });
+          }
+        }
+
+        // Job opening notifications
+        else if (payload.data.type === 'JOB_OPENING') {
+          toast.info(`🎯 ${title}: ${body}`, { autoClose: 7000 });
+        }
+
+        // Resume submission notifications
+        else if (payload.data.type === 'RESUME_SUBMITTED') {
+          toast.info(`📄 ${title}: ${body}`, { autoClose: 6000 });
+          console.log('📄 Resume notification data:', payload.data);
+        }
+
+        // Generic notifications
+        else {
+          toast.info(`📢 ${title}: ${body}`, { autoClose: 5000 });
+        }
+      }
+    };
+
+    window.addEventListener('firebaseNotification', handleNotificationReceived);
+    return () => window.removeEventListener('firebaseNotification', handleNotificationReceived);
+  }, []);
+
   return (
     <div className={`flex h-screen overflow-hidden ${isDarkMode ? "bg-gradient-to-br from-slate-900 to-blue-900 text-gray-100" : "bg-gradient-to-br from-blue-50 to-white text-gray-800"}`}>
       {showReminderPopup && currentReminder && (
@@ -617,6 +690,10 @@ const Dashboard = () => {
             <Route path="profileform" element={<ProfileForm />} />
             <Route path="certificates" element={<Certificates />} />
             <Route path="reminders" element={<Reminders />} />
+            <Route path="notification-test" element={<NotificationTest />} />
+            <Route path="fcm-test" element={<FCMTest />} />
+            <Route path="token-debugger" element={<TokenDebugger />} />
+            <Route path="notification-debugger" element={<NotificationDebugger />} />
             <Route path="track-employee" element={<TrackEmployee />} />
             <Route path="add-openings" element={<AddOpenings />} />
             <Route path="resume" element={<Resume />} />

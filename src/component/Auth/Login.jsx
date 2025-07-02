@@ -138,37 +138,54 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
 
-      // 🔥 FCM TOKEN GENERATION - START 🔥
-      try {
-        console.log('🚀 Starting FCM token generation...');
-        
-        // Determine user type based on role
-        const userType = userData.role === 'SUB_ADMIN' || userData.role === 'SUBADMIN' ? 'SUBADMIN' : 'EMPLOYEE';
-        console.log('📱 User type for FCM:', userType);
-        
-        // Generate and register FCM token
-        const tokenRegistered = await firebaseService.registerTokenWithBackend(userData.id, userType);
-        
-        if (tokenRegistered) {
-          console.log('✅ FCM token registered successfully for user:', userData.id);
-          // Setup message listener for real-time notifications
-          firebaseService.setupForegroundMessageListener();
-          toast.success("Notifications enabled successfully!");
-        } else {
-          console.log('⚠️ FCM token registration failed, but continuing with login');
+      // 🔥 FCM TOKEN GENERATION - START (NON-BLOCKING) 🔥
+      // Run FCM token registration in background without blocking login
+      const handleFCMRegistration = async () => {
+        try {
+          console.log('🚀 Starting FCM token generation...');
+
+          // Check if FCM is available (skip in development if needed)
+          if (!window.navigator || !window.navigator.serviceWorker) {
+            console.log('⚠️ Service Worker not available, skipping FCM registration');
+            return;
+          }
+
+          // Determine user type based on role
+          const userType = userData.role === 'SUB_ADMIN' || userData.role === 'SUBADMIN' ? 'SUBADMIN' : 'EMPLOYEE';
+          console.log('📱 User type for FCM:', userType);
+
+          // Generate and register FCM token with timeout
+          const tokenRegistered = await Promise.race([
+            firebaseService.registerTokenWithBackend(userData.id, userType),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('FCM registration timeout')), 5000))
+          ]);
+
+          if (tokenRegistered) {
+            console.log('✅ FCM token registered successfully for user:', userData.id);
+            // Setup message listener for real-time notifications
+            firebaseService.setupForegroundMessageListener();
+            toast.success("Notifications enabled successfully!");
+          } else {
+            console.log('⚠️ FCM token registration failed, but continuing with login');
+            toast.warning("Notifications could not be enabled, but login successful");
+          }
+        } catch (fcmError) {
+          console.error('❌ FCM token generation failed:', fcmError);
           toast.warning("Notifications could not be enabled, but login successful");
+          // Don't break login flow if FCM fails
         }
-      } catch (fcmError) {
-        console.error('❌ FCM token generation failed:', fcmError);
-        toast.warning("Notifications could not be enabled, but login successful");
-        // Don't break login flow if FCM fails
-      }
-      // 🔥 FCM TOKEN GENERATION - END 🔥
+      };
+
+      // Start FCM registration in background
+      // Allow FCM in development for testing, but with better error handling
+      handleFCMRegistration();
+      // 🔥 FCM TOKEN GENERATION - END (NON-BLOCKING) 🔥
 
       setSuccessMessage("Login successful! Welcome to your dashboard.");
       setShowSuccessModal(true);
 
-      setTimeout(() => {
+      // Reduce timeout for faster navigation
+      const navigateUser = () => {
         setShowSuccessModal(false);
         setLoading(false);
 
@@ -179,7 +196,17 @@ const Login = () => {
         } else {
           navigate("/dashboard", { replace: true });
         }
-      }, 2000);
+      };
+
+      setTimeout(navigateUser, 1000);
+
+      // Fallback navigation in case something goes wrong
+      setTimeout(() => {
+        if (window.location.pathname === '/login') {
+          console.log('🔄 Fallback navigation triggered');
+          navigateUser();
+        }
+      }, 3000);
     } catch (error) {
       console.error("Login error:", error);
       setIsSubmitting(false);
@@ -209,6 +236,33 @@ const Login = () => {
     setTimeout(() => {
       window.location.reload();
     }, 1000);
+  };
+
+  // Emergency navigation function for testing
+  const forceNavigate = (e) => {
+    e.preventDefault();
+    console.log("🚨 Force navigation triggered");
+    setLoading(false);
+    setIsSubmitting(false);
+
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData) {
+        if (userData.role === "MASTER_ADMIN") {
+          navigate("/masteradmin", { replace: true });
+        } else if (userData.role === "SUBADMIN" || userData.role === "SUB_ADMIN") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
+        toast.success("Force navigation completed");
+      } else {
+        toast.error("No user data found");
+      }
+    } catch (error) {
+      console.error("Force navigate error:", error);
+      toast.error("Force navigation failed");
+    }
   };
 
   useEffect(() => {
@@ -352,13 +406,25 @@ const Login = () => {
                   Forgot Password?
                 </button>
 
-                <button
-                  type="button"
-                  onClick={forceCleanLogin}
-                  className="text-xs text-gray-400 hover:text-blue-400 hover:underline transition-all duration-300"
-                >
-                  Clear
-                </button>
+                <div className="flex gap-2">
+                  {localStorage.getItem('user') && (
+                    <button
+                      type="button"
+                      onClick={forceNavigate}
+                      className="text-xs text-green-400 hover:text-green-300 hover:underline transition-all duration-300"
+                      title="Force navigate to dashboard if stuck"
+                    >
+                      Go to Dashboard
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={forceCleanLogin}
+                    className="text-xs text-gray-400 hover:text-blue-400 hover:underline transition-all duration-300"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </form>
           </div>

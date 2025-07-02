@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Routes, Route } from "react-router-dom";
 import SalarySlip from "./SalarySlip";
 import ViewAttendance from "./ViewAttendance";
+import LeaveApplication from "./LeaveApplication";
+import ResumeUpload from "./ResumeUpload";
 import {
   FaCalendarWeek,
   FaReceipt,
   FaUser,
   FaSignOutAlt,
   FaMoon,
-  FaSun
+  FaSun,
+  FaCalendarAlt,
+  FaFileUpload
 } from "react-icons/fa";
 import { HiMenu, HiX } from "react-icons/hi";
 import Profile from "../Auth/Profile";
 import { useApp } from "../../context/AppContext";
+import firebaseService from "../../services/firebaseService";
+import { toast } from "react-toastify";
 import "../DashoBoard/animations.css";
 
 const UserDashboard = () => {
@@ -23,6 +29,72 @@ const UserDashboard = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // Initialize FCM for notifications
+  useEffect(() => {
+    const initializeFCM = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.empId) return;
+
+        console.log('🔄 Initializing FCM for user dashboard...');
+
+        // Setup FCM token and register with backend
+        await firebaseService.registerTokenWithBackend(user.empId, 'EMPLOYEE');
+
+        // Setup foreground message listener
+        firebaseService.setupForegroundMessageListener();
+
+        console.log('✅ FCM initialized successfully for user dashboard');
+      } catch (error) {
+        console.error('❌ Failed to initialize FCM for user dashboard:', error);
+      }
+    };
+
+    initializeFCM();
+  }, []);
+
+  // Global notification listener for all notification types
+  useEffect(() => {
+    const handleNotificationReceived = (event) => {
+      const payload = event.detail;
+
+      // Handle different notification types
+      if (payload.data && payload.data.type && payload.notification) {
+        const { title, body } = payload.notification;
+
+        // Leave-related notifications
+        if (payload.data.type.startsWith('LEAVE_')) {
+          if (payload.data.type === 'LEAVE_APPROVED') {
+            toast.success(`✅ ${title}: ${body}`, { autoClose: 5000 });
+          } else if (payload.data.type === 'LEAVE_REJECTED') {
+            toast.error(`❌ ${title}: ${body}`, { autoClose: 5000 });
+          } else {
+            toast.info(`📅 ${title}: ${body}`, { autoClose: 5000 });
+          }
+        }
+
+        // Job opening notifications
+        else if (payload.data.type === 'JOB_OPENING') {
+          toast.info(`🎯 ${title}: ${body}`, { autoClose: 7000 });
+          console.log('🎯 Job opening notification data:', payload.data);
+        }
+
+        // Resume submission notifications (shouldn't receive these as employee)
+        else if (payload.data.type === 'RESUME_SUBMITTED') {
+          toast.info(`📄 ${title}: ${body}`, { autoClose: 6000 });
+        }
+
+        // Generic notifications
+        else {
+          toast.info(`📢 ${title}: ${body}`, { autoClose: 5000 });
+        }
+      }
+    };
+
+    window.addEventListener('firebaseNotification', handleNotificationReceived);
+    return () => window.removeEventListener('firebaseNotification', handleNotificationReceived);
+  }, []);
+
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
@@ -30,20 +102,30 @@ const UserDashboard = () => {
   // Navigation links array for DRY code
   const navLinks = [
     { to: "/userdashboard", label: "Dashboard", icon: null },
-    { 
-      to: "/userdashboard/viewAtten", 
-      label: "View Attendance", 
-      icon: <FaCalendarWeek className="animate-float" /> 
+    {
+      to: "/userdashboard/viewAtten",
+      label: "View Attendance",
+      icon: <FaCalendarWeek className="animate-float" />
     },
-    { 
-      to: "/userdashboard/salaryslip", 
-      label: "Salary Slip", 
-      icon: <FaReceipt className="animate-float" /> 
+    {
+      to: "/userdashboard/salaryslip",
+      label: "Salary Slip",
+      icon: <FaReceipt className="animate-float" />
     },
-    { 
-      to: "/userdashboard/profile", 
-      label: "View Profile", 
-      icon: <FaUser className="animate-float" /> 
+    {
+      to: "/userdashboard/leave-application",
+      label: "Apply for Leave",
+      icon: <FaCalendarAlt className="animate-float" />
+    },
+    {
+      to: "/userdashboard/resume-upload",
+      label: "Upload Resume",
+      icon: <FaFileUpload className="animate-float" />
+    },
+    {
+      to: "/userdashboard/profile",
+      label: "View Profile",
+      icon: <FaUser className="animate-float" />
     },
   ];
 
@@ -128,6 +210,8 @@ const UserDashboard = () => {
             <Route path="/" element={<div className="p-6 bg-white rounded-lg shadow-md transform transition duration-300 hover:shadow-xl card">Welcome to User Dashboard</div>} />
             <Route path="/salaryslip" element={<SalarySlip />} />
             <Route path="/viewAtten" element={<ViewAttendance />} />
+            <Route path="/leave-application" element={<LeaveApplication />} />
+            <Route path="/resume-upload" element={<ResumeUpload />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>
