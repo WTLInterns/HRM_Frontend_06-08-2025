@@ -29,6 +29,19 @@
   20%, 40% { transform: rotate(10deg); }
 }
 
+.listening-indicator {
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  font-size: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .notification-badge {
   position: absolute;
   top: -2px;
@@ -138,6 +151,28 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.notification-mark-all-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification-mark-all-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .notification-refresh-btn,
@@ -344,6 +379,15 @@
 [data-theme="dark"] .notification-count {
   background: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .notification-mark-all-btn {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-mark-all-btn:hover {
+  background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
 }
 
 [data-theme="dark"] .notification-body {

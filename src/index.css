@@ -118,7 +118,7 @@ a, button, input, select, textarea {
 }
 
 /* Button hover effects */
-button:hover, 
+button:hover,
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -127,6 +127,20 @@ button:hover,
 button:active,
 .btn:active {
   transform: translateY(1px);
+}
+
+/* Action button specific styles - override global button styles */
+.action-btn {
+  transition: all 0.2s ease !important;
+}
+
+.action-btn:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.action-btn:active {
+  transform: scale(0.95) !important;
 }
 
 /* Card hover effects */

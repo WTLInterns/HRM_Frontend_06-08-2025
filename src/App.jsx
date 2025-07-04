@@ -3,9 +3,11 @@ import { useLocation } from "react-router-dom";
 
 import RouterNavbar from "./Router/RouterNavbar";
 import { AppProvider, useApp } from "./context/AppContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import firebaseService from "./services/firebaseService";
+import './i18n'; // Import i18n configuration
 
 // Error boundary component to catch rendering errors
 class ErrorBoundary extends Component {
@@ -118,11 +120,13 @@ const App = () => {
   return (
     <div className="min-h-screen transition-all duration-300">
       <ErrorBoundary>
-        <AppProvider>
-          <ThemeWrapper>
-            <RouterNavbar />
-          </ThemeWrapper>
-        </AppProvider>
+        <LanguageProvider>
+          <AppProvider>
+            <ThemeWrapper>
+              <RouterNavbar />
+            </ThemeWrapper>
+          </AppProvider>
+        </LanguageProvider>
       </ErrorBoundary>
     </div>
   );

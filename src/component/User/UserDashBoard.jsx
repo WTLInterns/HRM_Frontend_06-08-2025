@@ -20,9 +20,11 @@ import { useApp } from "../../context/AppContext";
 import firebaseService from "../../services/firebaseService";
 import { toast } from "react-toastify";
 import "../DashoBoard/animations.css";
+import { useTranslation } from 'react-i18next';
 
 const UserDashboard = () => {
   const { logoutUser, isDarkMode, toggleTheme } = useApp();
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -101,30 +103,30 @@ const UserDashboard = () => {
 
   // Navigation links array for DRY code
   const navLinks = [
-    { to: "/userdashboard", label: "Dashboard", icon: null },
+    { to: "/userdashboard", label: t('navigation.dashboard'), icon: null },
     {
       to: "/userdashboard/viewAtten",
-      label: "View Attendance",
+      label: t('navigation.viewAttendance'),
       icon: <FaCalendarWeek className="animate-float" />
     },
     {
       to: "/userdashboard/salaryslip",
-      label: "Salary Slip",
+      label: t('navigation.salarySlip'),
       icon: <FaReceipt className="animate-float" />
     },
     {
       to: "/userdashboard/leave-application",
-      label: "Apply for Leave",
+      label: t('navigation.applyForLeave'),
       icon: <FaCalendarAlt className="animate-float" />
     },
     {
       to: "/userdashboard/resume-upload",
-      label: "Upload Resume",
+      label: t('navigation.uploadResume'),
       icon: <FaFileUpload className="animate-float" />
     },
     {
       to: "/userdashboard/profile",
-      label: "View Profile",
+      label: t('navigation.viewProfile'),
       icon: <FaUser className="animate-float" />
     },
   ];
@@ -143,7 +145,7 @@ const UserDashboard = () => {
 
       {/* Mobile Header - only visible on small screens */}
       <div className={`lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-center p-4 ${isDarkMode ? 'bg-slate-800' : 'bg-blue-900'} text-white animate-fadeIn`}>
-        <h1 className="text-xl font-bold">My Dashboard</h1>
+        <h1 className="text-xl font-bold">{t('navigation.userDashboard')}</h1>
       </div>
 
       {/* Sidebar */}
@@ -151,7 +153,7 @@ const UserDashboard = () => {
         className={`${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:relative left-0 h-full w-64 ${isDarkMode ? 'bg-slate-800' : 'bg-blue-800'} text-white shadow-xl z-40 overflow-y-auto flex flex-col`}
       >
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-5 animate-fadeIn">My Dashboard</h1>
+          <h1 className="text-2xl font-bold mb-5 animate-fadeIn">{t('navigation.userDashboard')}</h1>
         </div>
 
         <nav className="px-4">
@@ -189,7 +191,7 @@ const UserDashboard = () => {
             onClick={logoutUser}
             className="flex items-center gap-2 p-2 w-full rounded hover:bg-blue-700 hover:text-gray-200 transform transition duration-300 hover:translate-x-1 hover:bg-red-600 animate-pulse-slow"
           >
-            <FaSignOutAlt /> Logout
+            <FaSignOutAlt /> {t('auth.logout')}
           </button>
         </nav>
       </aside>
@@ -207,7 +209,7 @@ const UserDashboard = () => {
         {/* Add top padding on mobile to account for the fixed header */}
         <div className="pt-16 lg:pt-0 h-full">
           <Routes>
-            <Route path="/" element={<div className="p-6 bg-white rounded-lg shadow-md transform transition duration-300 hover:shadow-xl card">Welcome to User Dashboard</div>} />
+            <Route path="/" element={<div className="p-6 bg-white rounded-lg shadow-md transform transition duration-300 hover:shadow-xl card">{t('dashboard.welcome')} {t('navigation.userDashboard')}</div>} />
             <Route path="/salaryslip" element={<SalarySlip />} />
             <Route path="/viewAtten" element={<ViewAttendance />} />
             <Route path="/leave-application" element={<LeaveApplication />} />

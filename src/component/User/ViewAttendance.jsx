@@ -1,13 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../DashoBoard/animations.css";
 import { FaCalendarAlt, FaSearch } from "react-icons/fa";
 import axios from "axios";
+import { useTranslation } from 'react-i18next';
 
 const ViewAttendance = () => {
+  const { t } = useTranslation();
   const [empId, setEmpId] = useState("");
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Status translation helper
+  const getStatusLabel = useMemo(() => (status) => {
+    const statusMap = {
+      'present': t('attendance.present'),
+      'absent': t('attendance.absent'),
+      'Present': t('attendance.present'),
+      'Absent': t('attendance.absent')
+    };
+    return statusMap[status] || status;
+  }, [t]);
 
   const handleInputChange = (e) => {
     setEmpId(e.target.value);
@@ -43,7 +56,7 @@ const ViewAttendance = () => {
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:shadow-2xl card">
         <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800 flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105">
           <FaCalendarAlt className="text-blue-500 animate-float" />
-          Search Attendance
+          {t('navigation.viewAttendance')}
         </h2>
 
         <div className="mb-6 transform transition duration-300 hover:translate-y-[-2px]">
@@ -51,7 +64,7 @@ const ViewAttendance = () => {
             htmlFor="empId"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Employee ID
+            {t('employee.employeeId')}
           </label>
           <div className="relative">
             <input
@@ -60,7 +73,7 @@ const ViewAttendance = () => {
               className="block w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out hover:border-blue-300"
               value={empId}
               onChange={handleInputChange}
-              placeholder="Enter Employee ID"
+              placeholder={t('placeholders.enterEmployeeId')}
             />
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <FaSearch />
@@ -83,7 +96,7 @@ const ViewAttendance = () => {
               </div>
             ) : (
               <>
-                <span>Search Attendance</span>
+                <span>{t('navigation.viewAttendance')}</span>
                 <span className="absolute inset-0 bg-white opacity-20 transform scale-x-0 origin-left transition-transform group-hover:scale-x-100"></span>
               </>
             )}
@@ -107,7 +120,7 @@ const ViewAttendance = () => {
                     <p className={`px-3 py-1 text-xs font-semibold rounded-full ${
                       attendance.status === 'present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {attendance.status === 'present' ? 'Present' : 'Absent'}
+                      {getStatusLabel(attendance.status)}
                     </p>
                   </div>
                 </div>

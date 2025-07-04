@@ -14,6 +14,7 @@ import MasterAdmin from "../component/MasterAdmin/MasterAdmin";
 import Logout from "../component/Auth/Logout";
 import { useApp } from "../context/AppContext";
 import ProtectRoute from "../component/Auth/ProtectRoute";
+import LanguagePersistence from "../components/LanguagePersistence";
 
 // Simple fallback component if routes fail to load
 const FallbackComponent = () => (
@@ -41,8 +42,9 @@ const RouterNavbar = () => {
   }, [location, user]);
 
   return (
-    <div>
-      <Routes>
+    <LanguagePersistence>
+      <div>
+        <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -93,8 +95,9 @@ const RouterNavbar = () => {
         />
         {/* Fallback route if none match */}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+        </Routes>
+      </div>
+    </LanguagePersistence>
   );
 };
 

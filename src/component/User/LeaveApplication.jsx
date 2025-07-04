@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import firebaseService from '../../services/firebaseService';
 import './LeaveApplication.css';
+import { useTranslation } from 'react-i18next';
 
 const LeaveApplication = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fromDate: '',
     toDate: '',
@@ -103,7 +105,7 @@ const LeaveApplication = () => {
         status: 'Pending'
       };
 
-      const apiUrl = `http://localhost:8282/api/leaveform/${userData.subadmin?.id}/${userData.empId}/${userToken}/${subadminToken}`;
+      const apiUrl = `https://api.managifyhr.com/api/leaveform/${userData.subadmin?.id}/${userData.empId}/${userToken}/${subadminToken}`;
       console.log('🚀 Submitting leave application to:', apiUrl);
       console.log('📝 Leave request data:', leaveRequest);
 

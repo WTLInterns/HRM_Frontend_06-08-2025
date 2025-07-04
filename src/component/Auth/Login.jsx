@@ -8,10 +8,13 @@ import { FaEnvelope, FaLock, FaBuilding, FaCheckCircle, FaEye, FaEyeSlash } from
 import "../DashoBoard/animations.css";
 import axios from "axios";
 import firebaseService from "../../services/firebaseService"; // Add this import
+import { useTranslation } from 'react-i18next';
+import LanguageToggle from "../../components/LanguageToggle";
 
 const Login = () => {
   console.log("Login component rendering");
   const { loginUser, user, setUser } = useApp();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -102,7 +105,7 @@ const Login = () => {
       try {
         console.log("Attempting subadmin login...");
         response = await axios.post(
-          `http://localhost:8282/api/subadmin/login?email=${email}&password=${password}`
+          `https://api.managifyhr.com/api/subadmin/login?email=${email}&password=${password}`
         );
         const data = response.data;
         console.log("Subadmin login response:", data);
@@ -122,7 +125,7 @@ const Login = () => {
 
         // Try masteradmin login
         response = await axios.post(
-          `http://localhost:8282/masteradmin/login?email=${email}&password=${password}`
+          `https://api.managifyhr.com/masteradmin/login?email=${email}&password=${password}`
         );
         const data = response.data;
         console.log("Masteradmin login response:", data);
@@ -276,6 +279,11 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen relative overflow-hidden animate-fadeIn bg-slate-900">
+      {/* Language Toggle in top-right corner */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageToggle position="right" />
+      </div>
+
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute w-full h-full bg-login-image opacity-10"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-900/80 via-slate-900/90 to-slate-900/95"></div>
@@ -307,13 +315,13 @@ const Login = () => {
           <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 animate-scaleIn">
             <FaBuilding className="text-white text-3xl" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-wide animate-fadeIn animate-delay-300">HRM SYSTEM</h1>
+          <h1 className="text-3xl font-bold text-white tracking-wide animate-fadeIn animate-delay-300">{t('dashboard.hrmSystem')}</h1>
           <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mt-2 rounded-full animate-fadeIn animate-delay-500"></div>
         </div>
 
         <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden animate-scaleIn animate-delay-500">
           <div className="p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">Welcome Back</h2>
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">{t('dashboard.welcome')}</h2>
 
             {error && (
               <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 mb-4 animate-pulse">
@@ -324,7 +332,7 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                  Email or Mobile
+                  {t('auth.emailOrMobile')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -339,14 +347,14 @@ const Login = () => {
                     required
                     autoComplete="off"
                     className="block w-full pl-10 pr-3 py-3 bg-slate-700/50 border border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-100"
-                    placeholder="Enter your email or mobile"
+                    placeholder={t('auth.enterEmail')}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -361,7 +369,7 @@ const Login = () => {
                     required
                     autoComplete="new-password"
                     className="block w-full pl-10 pr-10 py-3 bg-slate-700/50 border border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-100"
-                    placeholder="Enter your password"
+                    placeholder={t('auth.enterPassword')}
                   />
                   <button
                     type="button"
@@ -387,10 +395,10 @@ const Login = () => {
                     {loading ? (
                       <>
                         <ClipLoader color="#fff" size={20} />
-                        <span className="ml-2">Logging in...</span>
+                        <span className="ml-2">{t('auth.loggingIn')}</span>
                       </>
                     ) : (
-                      "Sign In"
+                      t('auth.signIn')
                     )}
                   </span>
                   <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 transform scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100"></span>
@@ -403,7 +411,7 @@ const Login = () => {
                   onClick={() => navigate("/forgot-password")}
                   className="text-blue-400 hover:text-blue-300 transition duration-300 hover:underline"
                 >
-                  Forgot Password?
+                  {t('auth.forgotPassword')}?
                 </button>
 
                 <div className="flex gap-2">
@@ -414,7 +422,7 @@ const Login = () => {
                       className="text-xs text-green-400 hover:text-green-300 hover:underline transition-all duration-300"
                       title="Force navigate to dashboard if stuck"
                     >
-                      Go to Dashboard
+                      {t('navigation.dashboard')}
                     </button>
                   )}
                   <button
@@ -422,7 +430,7 @@ const Login = () => {
                     onClick={forceCleanLogin}
                     className="text-xs text-gray-400 hover:text-blue-400 hover:underline transition-all duration-300"
                   >
-                    Clear
+                    {t('common.clear')}
                   </button>
                 </div>
               </div>

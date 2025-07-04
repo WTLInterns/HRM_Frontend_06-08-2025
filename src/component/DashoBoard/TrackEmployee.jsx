@@ -6,8 +6,9 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import { FaTimes, FaFileExcel } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useTranslation } from 'react-i18next';
 
-const API_URL = "http://localhost:8282/api";
+const API_URL = "https://api.managifyhr.com/api";
 
 const containerStyle = {
   width: "100%",
@@ -36,8 +37,9 @@ const fetchAddress = async (lat, lng, setter) => {
 
 const TrackEmployee = () => {
   const { isDarkMode } = useApp();
-  const [isTrackingAll, setIsTrackingAll] = useState(false);
-  const [allEmployeeLocations, setAllEmployeeLocations] = useState([]);
+  const { t } = useTranslation();
+  const [isTrackingFieldEmployees, setIsTrackingFieldEmployees] = useState(false);
+  const [fieldEmployeeLocations, setFieldEmployeeLocations] = useState([]);
   const [activeMarker, setActiveMarker] = useState(null); // For InfoWindow
 
   const [location, setLocation] = useState(null);
@@ -52,6 +54,7 @@ const TrackEmployee = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [address, setAddress] = useState("");
+  const [lastAddress, setLastAddress] = useState("");
   
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportCustomize, setExportCustomize] = useState(false);
@@ -90,29 +93,35 @@ const TrackEmployee = () => {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.get(`${API_URL}/location/${subadminId}/employee/locations`);
+      // Use the new endpoint to get only "work from field" employees
+      const res = await axios.get(`${API_URL}/location/${subadminId}/employee/locations/field-work`);
       const locations = res.data.map(loc => ({
         ...loc,
         lat: parseFloat(loc.latitude),
         lng: parseFloat(loc.longitude)
       }));
-      setAllEmployeeLocations(locations);
+      setFieldEmployeeLocations(locations);
       if (locations.length > 0) {
         setMapCenter({ lat: locations[0].lat, lng: locations[0].lng });
         setZoom(12);
+        toast.success(`Tracking ${locations.length} "work from field" employees`);
+      } else {
+        toast.info("No employees are currently working from field today");
+        setError("No employees are currently working from field today.");
       }
     } catch (err) {
-      setError("Could not fetch employee locations.");
+      setError("Could not fetch work from field employee locations.");
+      toast.error("Failed to fetch work from field employee locations");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (isTrackingAll) {
+    if (isTrackingFieldEmployees) {
       handleTrackAll();
     }
-  }, [isTrackingAll, handleTrackAll]);
+  }, [isTrackingFieldEmployees, handleTrackAll]);
 
   useEffect(() => {
     const subadminId = getSubadminId();
@@ -122,7 +131,7 @@ const TrackEmployee = () => {
       stompClientRef.current.deactivate();
     }
 
-    const sock = new SockJS("http://localhost:8282/ws");
+    const sock = new SockJS("https://api.managifyhr.com/ws");
     const stompClient = new Client({
       webSocketFactory: () => sock,
       reconnectDelay: 5000,
@@ -131,8 +140,8 @@ const TrackEmployee = () => {
     stompClient.onConnect = () => {
       stompClient.subscribe(`/topic/location/${subadminId}`, (message) => {
         const data = JSON.parse(message.body);
-        if (isTrackingAll) {
-          setAllEmployeeLocations(prev =>
+        if (isTrackingFieldEmployees) {
+          setFieldEmployeeLocations(prev =>
             prev.map(emp =>
               emp.empId === data.empId
                 ? { ...emp, lat: parseFloat(data.latitude), lng: parseFloat(data.longitude), fullName: data.fullName }
@@ -157,12 +166,14 @@ const TrackEmployee = () => {
         stompClient.deactivate();
       }
     };
-  }, [isTrackingAll, selectedEmployee]);
+  }, [isTrackingFieldEmployees, selectedEmployee]);
 
   const handleTrack = async (emp) => {
     // This function is now simplified as WebSocket handles updates
     setError("");
     setLocation(null);
+    setAddress("");
+    setLastAddress("");
     setLoading(true);
     const subadminId = getSubadminId();
     if (!subadminId) return;
@@ -174,10 +185,29 @@ const TrackEmployee = () => {
       }
       const lat = parseFloat(data.latitude);
       const lng = parseFloat(data.longitude);
-      setLocation({ lat, lng, empName: emp.fullName });
+
+      // Store both current and last location data
+      const locationData = {
+        lat,
+        lng,
+        empName: emp.fullName,
+        lastLat: data.lastLatitude ? parseFloat(data.lastLatitude) : null,
+        lastLng: data.lastLongitude ? parseFloat(data.lastLongitude) : null
+      };
+
+      setLocation(locationData);
       setMapCenter({ lat, lng });
       setZoom(16);
+
+      // Fetch current location address
       fetchAddress(lat, lng, setAddress);
+
+      // Fetch last location address if available
+      if (data.lastLatitude && data.lastLongitude) {
+        const lastLat = parseFloat(data.lastLatitude);
+        const lastLng = parseFloat(data.lastLongitude);
+        fetchAddress(lastLat, lastLng, setLastAddress);
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Unknown error");
     } finally {
@@ -299,20 +329,32 @@ const TrackEmployee = () => {
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-6 rounded-lg shadow-lg mt-10 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-gray-900'}`}>
-      <h2 className="text-3xl font-bold mb-4 text-blue-600">Track Employees</h2>
+      <h2 className="text-3xl font-bold mb-4 text-blue-600">{t('navigation.trackEmployee')}</h2>
       
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsTrackingAll(!isTrackingAll)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              isTrackingAll 
-              ? 'bg-green-500 text-white' 
-              : 'bg-gray-300 text-black'
-            }`}
-          >
-            {isTrackingAll ? "Tracking All Employees" : "Track All Employees"}
-          </button>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsTrackingFieldEmployees(!isTrackingFieldEmployees)}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                isTrackingFieldEmployees
+                ? 'bg-green-500 text-white'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isTrackingFieldEmployees ? "Tracking Field Employees" : "Track Field Employees"}
+            </button>
+            {isTrackingFieldEmployees && (
+              <span className="text-sm text-green-600 font-medium">
+                📍 Showing only "work from field" employees
+              </span>
+            )}
+          </div>
+          {!isTrackingFieldEmployees && (
+            <p className="text-sm text-gray-600 mt-1">
+              Click to track employees who are currently working from field today
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowExportModal(true)}
@@ -323,7 +365,7 @@ const TrackEmployee = () => {
         </button>
       </div>
 
-      {!isTrackingAll && (
+      {!isTrackingFieldEmployees && (
         <div className="relative w-full mb-4">
             <input
               type="text"
@@ -367,82 +409,165 @@ const TrackEmployee = () => {
           zoom={zoom}
           options={{ gestureHandling: "cooperative" }}
         >
-          {isTrackingAll
-            ? allEmployeeLocations.map(emp => (
+          {isTrackingFieldEmployees
+            ? fieldEmployeeLocations.map(emp => (
                 <MarkerF
                   key={emp.empId}
                   position={{ lat: emp.lat, lng: emp.lng }}
-                  label={`${emp.fullName} (ID: ${emp.empId})`}
+                  label={`🏃 ${emp.fullName}`}
                   onClick={() => setActiveMarker(emp.empId)}
+                  icon={{
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" fill="#10B981" stroke="#ffffff" stroke-width="3"/>
+                        <text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">🏃</text>
+                      </svg>
+                    `),
+                    scaledSize: new window.google.maps.Size(40, 40),
+                    anchor: new window.google.maps.Point(20, 20)
+                  }}
                 >
                   {activeMarker === emp.empId && (
                     <InfoWindow onCloseClick={() => setActiveMarker(null)}>
                       <div>
-                        <h4 className="font-bold">{emp.fullName}</h4>
-                        <p>ID: {emp.empId}</p>
-                        <p>Lat: {emp.lat.toFixed(6)}, Lng: {emp.lng.toFixed(6)}</p>
+                        <h4 className="font-bold text-green-600">🏃 {emp.fullName}</h4>
+                        <p><strong>ID:</strong> {emp.empId}</p>
+                        <p><strong>Work Type:</strong> <span className="text-green-600 font-medium">Work from Field</span></p>
+                        <p><strong>Location:</strong> {emp.lat.toFixed(6)}, {emp.lng.toFixed(6)}</p>
+                        <p className="text-sm text-gray-500 mt-1">📍 Currently working in the field</p>
                       </div>
                     </InfoWindow>
                   )}
                 </MarkerF>
               ))
             : location && (
-                <MarkerF position={{ lat: location.lat, lng: location.lng }} />
+                <>
+                  {/* Current Location Marker */}
+                  <MarkerF
+                    position={{ lat: location.lat, lng: location.lng }}
+                    onClick={() => setActiveMarker('current')}
+                    icon={{
+                      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M16 2C10.48 2 6 6.48 6 12c0 8.25 10 18 10 18s10-9.75 10-18c0-5.52-4.48-10-10-10z" fill="#EA4335"/>
+                          <circle cx="16" cy="12" r="4" fill="white"/>
+                        </svg>
+                      `),
+                      scaledSize: new window.google.maps.Size(32, 32),
+                      anchor: new window.google.maps.Point(16, 32)
+                    }}
+                  >
+                    {activeMarker === 'current' && (
+                      <InfoWindow onCloseClick={() => setActiveMarker(null)}>
+                        <div>
+                          <h4 className="font-bold text-red-600">🎯 Current Location</h4>
+                          <p><strong>Employee:</strong> {location.empName}</p>
+                          <p><strong>Coordinates:</strong> {location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
+                          <p className="text-sm text-gray-500 mt-1">Latest known position</p>
+                        </div>
+                      </InfoWindow>
+                    )}
+                  </MarkerF>
+
+                </>
               )}
         </GoogleMap>
       )}
 
-      {!isTrackingAll && location && (
-        <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-800 rounded-lg">
-          <h3 className="font-bold text-lg">{location.empName}</h3>
-          <p>Latitude: {location.lat}</p>
-          <p>Longitude: {location.lng}</p>
-          <p className="text-sm text-gray-500">{address}</p>
+      {!isTrackingFieldEmployees && location && (
+        <div className="mt-4 space-y-4">
+          <h3 className="font-bold text-xl text-center mb-4 text-blue-600 dark:text-blue-400">{location.empName}</h3>
+
+          {/* Current Location */}
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+            <h4 className="font-semibold text-lg text-red-700 dark:text-red-300 mb-2">🎯 Current Location</h4>
+            <div className="space-y-1">
+              <p className="text-sm"><span className="font-medium">Latitude:</span> {location.lat.toFixed(6)}</p>
+              <p className="text-sm"><span className="font-medium">Longitude:</span> {location.lng.toFixed(6)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                <span className="font-medium">Address:</span> {address || "Loading address..."}
+              </p>
+            </div>
+          </div>
+
+          {/* Last Location */}
+          {location.lastLat && location.lastLng ? (
+            <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg">
+              <h4 className="font-semibold text-lg text-orange-700 dark:text-orange-300 mb-2">📌 Last Location</h4>
+              <div className="space-y-1">
+                <p className="text-sm"><span className="font-medium">Latitude:</span> {location.lastLat.toFixed(6)}</p>
+                <p className="text-sm"><span className="font-medium">Longitude:</span> {location.lastLng.toFixed(6)}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                  <span className="font-medium">Address:</span> {lastAddress || "Loading address..."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+              <h4 className="font-semibold text-lg text-gray-600 dark:text-gray-400 mb-2">📌 Last Location</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No previous location data available</p>
+            </div>
+          )}
+
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            💡 This information helps track employee location even if their phone is dead or restarted
+          </div>
         </div>
       )}
 
       {/* Export Modal */}
       {showExportModal && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-           <div className={`p-6 rounded-lg shadow-xl ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
-             <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold">Export Location History</h3>
-               <button onClick={() => setShowExportModal(false)}><FaTimes/></button>
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+           <div className={`w-96 max-w-md p-4 rounded-lg shadow-xl ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+             <div className="flex justify-between items-center mb-3">
+               <h3 className="text-lg font-bold">📊 Export Data</h3>
+               <button
+                 onClick={() => setShowExportModal(false)}
+                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+               >
+                 <FaTimes/>
+               </button>
              </div>
-             
-             <div className="flex space-x-4 mb-4">
-                <button 
+
+             <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded">
+               <p className="text-xs text-blue-700 dark:text-blue-300">
+                 <strong>📍 Excel Report:</strong> Last 12 hours with addresses & professional formatting.
+               </p>
+             </div>
+
+             <div className="flex space-x-2 mb-3">
+                <button
                   onClick={() => setExportCustomize(false)}
-                  className={`px-4 py-2 rounded ${!exportCustomize ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-slate-600'}`}
+                  className={`px-3 py-1.5 text-sm rounded ${!exportCustomize ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-slate-600'}`}
                 >
                   All Data
                 </button>
-                <button 
+                <button
                   onClick={() => setExportCustomize(true)}
-                  className={`px-4 py-2 rounded ${exportCustomize ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-slate-600'}`}
+                  className={`px-3 py-1.5 text-sm rounded ${exportCustomize ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-slate-600'}`}
                 >
                   Customize
                 </button>
              </div>
 
             {exportCustomize && (
-              <div className="relative w-full mb-4">
+              <div className="relative w-full mb-3">
                 <input
                   type="text"
                   placeholder="Enter employee name..."
                   value={exportEmployeeName}
                   onChange={(e) => setExportEmployeeName(e.target.value)}
-                  className={`w-full p-2 rounded border ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}
+                  className={`w-full p-2 text-sm rounded border ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}
                 />
                 {exportSuggestions.length > 0 && (
-                  <div className={`absolute left-0 right-0 z-10 w-full mt-1 border rounded shadow-lg ${isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white'}`}>
+                  <div className={`absolute left-0 right-0 z-10 w-full mt-1 border rounded shadow-lg max-h-32 overflow-y-auto ${isDarkMode ? 'bg-slate-900 border-slate-600' : 'bg-white'}`}>
                     {exportSuggestions.map(sug => (
                       <div key={sug.empId} onClick={() => {
                         setExportEmployeeName(sug.fullName);
                         setSelectedExportEmployee(sug);
                         setExportSuggestions([]);
                       }}
-                      className={`p-2 cursor-pointer ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-gray-200'}`}
+                      className={`p-2 text-sm cursor-pointer ${isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-gray-200'}`}
                       >
                         {sug.fullName}
                       </div>
@@ -454,8 +579,9 @@ const TrackEmployee = () => {
             
             <button
                 onClick={handleDownload}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="w-full px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center justify-center gap-2"
               >
+                <FaFileExcel className="text-sm" />
                 Download Report
               </button>
            </div>

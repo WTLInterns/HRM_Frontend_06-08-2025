@@ -8,8 +8,10 @@ import { FaCalendarAlt, FaUserCheck, FaSearch, FaTimes, FaDownload } from 'react
 import { exportAttendanceToExcel } from './excelExport';
 import { toast } from "react-hot-toast";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
 
 export default function ViewAttendance() {
+  const { t } = useTranslation();
   const [loggedUser, setLoggedUser] = useState(null);
   const [empFullName, setEmpFullName] = useState("");
   const [selectedEmpId, setSelectedEmpId] = useState(null);
@@ -33,7 +35,7 @@ export default function ViewAttendance() {
       const user = JSON.parse(userData);
       setLoggedUser(user);
       axios
-        .get(`http://localhost:8282/api/employee/${user.id}/employee/all`)
+        .get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`)
         .then(res => setEmployeeList(res.data))
         .catch(err => console.error("Failed to load employee list:", err));
     }
@@ -86,7 +88,7 @@ export default function ViewAttendance() {
     try {
       const subadminId = loggedUser.id;
       const res = await axios.get(
-        `http://localhost:8282/api/employee/${subadminId}/${selectedEmpId}/attendance`
+        `https://api.managifyhr.com/api/employee/${subadminId}/${selectedEmpId}/attendance`
       );
       setAttendanceData(res.data);
       setEmpName(res.data[0]?.employee?.firstName || "Employee");
@@ -231,10 +233,10 @@ const tileContent = ({ date, view }) => {
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                <span>Loading...</span>
+                <span>{t('common.loading')}</span>
               </div>
             ) : (
-              <><FaUserCheck /> View Attendance</>
+              <><FaUserCheck /> {t('navigation.viewAttendance')}</>
             )}
           </button>
           {attendanceData.length > 0 && (

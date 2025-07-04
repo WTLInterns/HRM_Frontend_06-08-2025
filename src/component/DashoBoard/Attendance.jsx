@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./animations.css";
 import { FaCheckCircle, FaTimes, FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
@@ -8,9 +8,11 @@ import "./theme-calendar.css";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
 
 export default function Attendance() {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
   // ...existing states...
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
@@ -31,15 +33,15 @@ export default function Attendance() {
   const [suggestions, setSuggestions] = useState([]);
   const [selectedEmpId, setSelectedEmpId] = useState(null);
 
-  // Attendance statuses
-  const statusOptions = [
-    "Present",
-    "Absent",
-    "Half-Day",
-    "Paid Leave",
-    "Week Off",
-    "Holiday"
-  ];
+  // Attendance statuses with translations - using useMemo to ensure updates on language change
+  const statusOptions = useMemo(() => [
+    { key: "Present", label: t('attendance.present') },
+    { key: "Absent", label: t('attendance.absent') },
+    { key: "Half-Day", label: t('attendance.halfDay') },
+    { key: "Paid Leave", label: t('attendance.paidLeave') },
+    { key: "Week Off", label: t('attendance.weekOff') },
+    { key: "Holiday", label: t('attendance.holiday') }
+  ], [t]);
 
   // Fetch employee list when component mounts
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function Attendance() {
       
       // Fetch employee list for autocomplete
       axios
-        .get(`http://localhost:8282/api/employee/${subAdminId}/employee/all`)
+        .get(`https://api.managifyhr.com/api/employee/${subAdminId}/employee/all`)
         .then(res => {
           console.log("Loaded employee list:", res.data.length, "employees");
           setEmployeeList(res.data);
@@ -101,7 +103,7 @@ export default function Attendance() {
     if (newDates.length > 0) {
       const newRecords = newDates.map(date => ({
         date,
-        status: "Present", // Default status.
+        status: "Present", // Default status key
         employeeName: employeeName || ""
       }));
       setAttendanceRecords(prev => [...prev, ...newRecords]);
@@ -121,7 +123,7 @@ export default function Attendance() {
   const checkExistingAttendance = async (empId, date) => {
     try {
       console.log(`Checking attendance for employee ID ${empId} on ${date}`);
-      const response = await axios.get(`http://localhost:8282/api/employee/bulk/${empId}/${date}`);
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/bulk/${empId}/${date}`);
       console.log('Existing attendance response:', response.data);
       return response.data;
     } catch (error) {
@@ -227,8 +229,8 @@ export default function Attendance() {
       
       let response;
       let existingStatus = '';
-      let updateUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
-      let addUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
+      let updateUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
       
       if (existingAttendance && existingAttendance.length > 0) {
         // Attendance exists, use PUT to update
@@ -491,7 +493,7 @@ export default function Attendance() {
         promises.push(
           axios
             .post(
-              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
               newRecords,
               config
             )
@@ -506,7 +508,7 @@ export default function Attendance() {
         promises.push(
           axios
             .put(
-              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
               updateRecords,
               config
             )
@@ -617,17 +619,17 @@ export default function Attendance() {
     <div className={`p-6 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-800'} min-h-screen animate-fadeIn`}>
       <Toaster position="top-right" toastOptions={{ className: 'react-hot-toast' }} />
       <h1 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-        <FaCalendarAlt className="inline-block mr-2" /> Mark Attendance
+        <FaCalendarAlt className="inline-block mr-2" /> {t('navigation.markAttendance')}
       </h1>
 
       {/* Attendance Form */}
       <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-5 rounded-lg shadow-md border mb-8`}>
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-2/3">
-            <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>Select Employee</h2>
+
             <div>
               <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
-                Employee Name
+                {t('employee.employeeName')}
               </label>
               <div className="relative">
                 <input
@@ -690,16 +692,16 @@ export default function Attendance() {
                   </div>
                   {statusOptions.map(status => (
                     <button
-                      key={status}
+                      key={status.key}
                       type="button"
                       className={`block w-full text-left px-4 py-2 ${isDarkMode ? 'hover:bg-slate-600 text-gray-100' : 'hover:bg-gray-100 text-gray-800'} ${
-                        attendanceRecords.find(r => r.date === selectedDate)?.status === status
+                        attendanceRecords.find(r => r.date === selectedDate)?.status === status.key
                           ? isDarkMode ? "bg-blue-600" : "bg-blue-500"
                           : ""
                       }`}
-                      onClick={() => handleStatusSelect(status)}
+                      onClick={() => handleStatusSelect(status.key)}
                     >
-                      {status}
+                      {status.label}
                     </button>
                   ))}
                   <div className={`p-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} border-t`}>
@@ -718,7 +720,7 @@ export default function Attendance() {
 
           {/* Selected Dates Summary - Moved to right side */}
           <div className="w-full md:w-1/3">
-            <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>Selected Dates</h2>
+            <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>{t('attendance.selectedDates')}</h2>
             {selectedDates.length > 0 ? (
               <div className="space-y-4">
                 <div className={`${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'} rounded-lg p-4`}>
@@ -746,9 +748,9 @@ export default function Attendance() {
                             {formatDate(record.date)}
                           </div>
                           <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {record.status}
+                            {statusOptions.find(s => s.key === record.status)?.label || record.status}
                             {(["Absent", "Leave", "Paid Leave"].includes(record.status) && record.reason) && (
-                              <span className="ml-2 italic text-yellow-600">Reason: {record.reason}</span>
+                              <span className="ml-2 italic text-yellow-600">{t('attendance.reason')}: {record.reason}</span>
                             )}
                           </div>
                         </div>
@@ -779,7 +781,7 @@ export default function Attendance() {
                     <>Processing...</>
                   ) : (
                     <>
-                      <FaCheckCircle /> Submit Attendance
+                      <FaCheckCircle /> {t('attendance.submitAttendance')}
                     </>
                   )}
                 </button>
@@ -796,15 +798,15 @@ export default function Attendance() {
     {showReasonModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className={`p-6 rounded-lg shadow-lg w-full max-w-md ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'}`}>
-          <h2 className="text-lg font-bold mb-4">Enter Reason</h2>
+          <h2 className="text-lg font-bold mb-4">{t('attendance.enterReason')}</h2>
           <div className="mb-4">
-            <label className="block mb-2 font-medium">Reason for {pendingStatus}:</label>
+            <label className="block mb-2 font-medium">{t('attendance.reasonFor')} {statusOptions.find(s => s.key === pendingStatus)?.label || pendingStatus}:</label>
             <textarea
               className={`w-full p-2 rounded border ${isDarkMode ? 'bg-slate-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'}`}
               rows={3}
               value={reasonInput}
               onChange={e => setReasonInput(e.target.value)}
-              placeholder="Enter reason..."
+              placeholder={t('attendance.enterReasonPlaceholder')}
               autoFocus
             />
             {reasonError && <div className="text-red-500 text-sm mt-1">{reasonError}</div>}
@@ -814,7 +816,7 @@ export default function Attendance() {
               className={`px-4 py-2 rounded ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-800'}`}
               onClick={() => { setShowReasonModal(false); setPendingStatus(null); setPendingDate(null); setReasonInput(""); setReasonError(""); }}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               className={`px-4 py-2 rounded ${isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-400 text-white'}`}

@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast"
 import { CloudCog } from "lucide-react"
 import { useApp } from "../../context/AppContext"
 import SalarySlipModal from "./SalarySlipModal";
+import { useTranslation } from 'react-i18next';
 
 // Helper: format date from "YYYY-MM-DD" to "DD-MM-YYYY"
 const formatDate = (dateStr) => {
@@ -114,6 +115,7 @@ const toApiDate = (dateStr) => {
 export default function SalaryReport() {
   const { isDarkMode } = useApp();
   const { emp } = useApp();
+  const { t } = useTranslation();
   const [employeeName, setEmployeeName] = useState("");
   const [selectedEmpId, setSelectedEmpId] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -131,8 +133,9 @@ export default function SalaryReport() {
   const [generating, setGenerating] = useState(false)
   const [incentiveAmount, setIncentiveAmount] = useState(0) // New state for incentive amount
   const [totalDeductions, setTotalDeductions] = useState(0) // New state for total deductions
-  const [professionalTax, setProfessionalTax] = useState(200) // Fixed Rs. 200 for professional tax
-  const [pfAmount, setPfAmount] = useState(0) // New state for PF amount
+  const [professionalTax, setProfessionalTax] = useState(0) // Professional tax from backend
+  const [pfAmount, setPfAmount] = useState(0) // PF amount from backend
+  const [esiAmount, setEsiAmount] = useState(0) // ESI amount from backend
   
   // State for popups
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -240,7 +243,7 @@ export default function SalaryReport() {
       const apiEndDate = toApiDate(endDate.trim());
       // Using the new API endpoint format
       const response = await axios.get(
-        `http://localhost:8282/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
+        `https://api.managifyhr.com/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -248,7 +251,7 @@ export default function SalaryReport() {
       try {
         // Get employee by name - this should return the full employee entity
         // const empResponse = await axios.get(
-        //   `http://localhost:8282/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
+        //   `https://api.managifyhr.com/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
         // )
         if (empResponse.status === 200) {
           employeeDetails = empResponse.data
@@ -267,18 +270,23 @@ export default function SalaryReport() {
       const data = response.data
       console.log("API Response:", data)
       
-      // Calculate deductions
+      // Use backend calculated values instead of frontend calculations
       const workingDays = data.workingDays || 30
       const perDaySalary = data.grossSalary / workingDays
       const totalLeaves = workingDays - (data.payableDays ?? 0)
       const deductionVal = Math.round(perDaySalary * totalLeaves)
+
+      // Use backend calculated values
       const tdsVal = data.tds ? Math.round(data.tds) : 0
-      
-      // Calculate PF (3% of gross salary)
-      const calculatedPfAmount = Math.round(data.grossSalary * 0.03)
-      setPfAmount(calculatedPfAmount)
-      
-      const calculatedTotalDeductions = deductionVal + professionalTax + tdsVal + calculatedPfAmount
+      const pfAmountFromBackend = data.pf ? Math.round(data.pf) : 0
+      const esiAmountFromBackend = data.esi ? Math.round(data.esi) : 0
+      const professionalTaxFromBackend = data.professionalTax ? Math.round(data.professionalTax) : 0
+
+      setPfAmount(pfAmountFromBackend)
+      setProfessionalTax(professionalTaxFromBackend)
+      setEsiAmount(esiAmountFromBackend)
+
+      const calculatedTotalDeductions = deductionVal + professionalTaxFromBackend + tdsVal + pfAmountFromBackend + esiAmountFromBackend
       
       // Ensure employee data is properly included
       console.log("Employee data for department and IFSC:", {
@@ -290,8 +298,9 @@ export default function SalaryReport() {
       const updatedData = {
         ...data,
         incentiveAmount: parseFloat(incentiveAmount) || 0,
-        professionalTax: professionalTax,
-        pfAmount: calculatedPfAmount,
+        professionalTax: professionalTaxFromBackend,
+        pfAmount: pfAmountFromBackend,
+        esiAmount: esiAmountFromBackend,
         totalDeductions: calculatedTotalDeductions,
         // Explicitly include these fields to ensure they're available
         // Use direct access to the employee object properties
@@ -710,10 +719,11 @@ export default function SalaryReport() {
         const perDaySalary = monthlyCTC / workingDays
         const totalLeaves = workingDays - (salaryReport?.payableDays ?? 0)
         const deductionVal = Math.round(perDaySalary * totalLeaves)
-        const professionalTaxVal = professionalTax // Use the state variable
+        const professionalTaxVal = salaryReport?.professionalTax ? Math.round(salaryReport.professionalTax) : 0
         const tdsVal = salaryReport?.tds ? Math.round(salaryReport.tds) : 0
-        const pfAmountVal = Math.round(grossSalary * 0.03) // Calculate PF (3% of gross salary)
-        const calculatedTotalDeductions = deductionVal + professionalTaxVal + tdsVal + pfAmountVal
+        const pfAmountVal = salaryReport?.pf ? Math.round(salaryReport.pf) : 0
+        const esiAmountVal = salaryReport?.esi ? Math.round(salaryReport.esi) : 0
+        const calculatedTotalDeductions = deductionVal + professionalTaxVal + tdsVal + pfAmountVal + esiAmountVal
         const incentiveAmountVal = parseFloat(salaryReport?.incentiveAmount) || 0
         const computedNetPayable = grossSalary - calculatedTotalDeductions + incentiveAmountVal
         const netPayInteger = Math.max(0, computedNetPayable)
@@ -802,7 +812,7 @@ export default function SalaryReport() {
         createCell(margin + sigColumnWidth, yPos, sigColumnWidth, signatureRowHeight, "", 10, "left")
 
         // Left column: Signature image'
-        const signature = `http://localhost:8282/images/profile/${user.signature}`
+        const signature = `https://api.managifyhr.com/images/profile/${user.signature}`
         try {
           doc.addImage(
             signature,
@@ -826,7 +836,7 @@ export default function SalaryReport() {
         }
 
         // Right column: Company logo
-        const logo = `http://localhost:8282/images/profile/${user.companylogo}`
+        const logo = `https://api.managifyhr.com/images/profile/${user.companylogo}`
         try {
           doc.addImage(
            logo,
@@ -903,15 +913,14 @@ export default function SalaryReport() {
           </div>
         </div>
       )}
-      <div className={`px-6 py-8 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
-        <h1 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Salary Slip Generator</h1>
-        
-        {/* Form */}
-        <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-5 rounded-lg shadow-lg border`}>
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
-            <div>
+      <div className={`px-4 py-4 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
+        <h1 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('navigation.salarySlip')} {t('common.create')}</h1>
 
-              <label htmlFor="employeeName" className={`block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+        {/* Form */}
+        <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-4 rounded-lg shadow-lg border`}>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-3 mb-3">
+            <div>
+              <label htmlFor="employeeName" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Employee Full Name
               </label>
               <div className="relative">
@@ -919,7 +928,7 @@ export default function SalaryReport() {
     type="text"
     id="employeeName"
     autoComplete="off"
-    className={`w-full p-2.5 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+    className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
     placeholder="Enter Employee Name"
     value={employeeName}
     onChange={async (e) => {
@@ -928,7 +937,7 @@ export default function SalaryReport() {
       if (value.trim().length > 0 && user && user.id) {
         try {
           // Fetch employee list from backend for autocomplete (like ViewAttendance)
-          const res = await axios.get(`http://localhost:8282/api/employee/${user.id}/employee/all`);
+          const res = await axios.get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`);
           const employeeList = res.data || [];
           const query = value.trim().toLowerCase();
           const list = employeeList.map(emp => ({
@@ -982,15 +991,15 @@ export default function SalaryReport() {
               {validation.employeeName && <p className="text-red-500 text-xs mt-1">{validation.employeeName}</p>}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="startDate" className={`block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="startDate" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Start Date
               </label>
               <input
                 type="date"
                 id="startDate"
-                className={`w-full p-2.5 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
@@ -998,13 +1007,13 @@ export default function SalaryReport() {
               {validation.startDate && <p className="text-red-500 text-xs mt-1">{validation.startDate}</p>}
             </div>
             <div>
-              <label htmlFor="endDate" className={`block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="endDate" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 End Date
               </label>
               <input
                 type="date"
                 id="endDate"
-                className={`w-full p-2.5 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
@@ -1014,15 +1023,15 @@ export default function SalaryReport() {
           </div>
           
           {/* Incentive Amount Field */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-3 mt-3">
             <div>
-              <label htmlFor="incentiveAmount" className={`block mb-2 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="incentiveAmount" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Incentive Amount
               </label>
               <input
                 type="number"
                 id="incentiveAmount"
-                className={`w-full p-2.5 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
                 placeholder="Enter Incentive Amount"
                 value={incentiveAmount}
                 onChange={(e) => setIncentiveAmount(e.target.value)}
@@ -1032,11 +1041,11 @@ export default function SalaryReport() {
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-3 mt-4">
+          <div className="flex flex-wrap gap-2 mt-3">
             <button
               onClick={handleSubmit}
               // disabled={loading || !employeeName || !startDate || !endDate}
-              className={`px-4 py-2 text-white rounded-md transition-colors ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:text-gray-300' : 'bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:text-gray-100'} disabled:cursor-not-allowed`}
+              className={`px-3 py-1.5 text-sm text-white rounded-md transition-colors ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:text-gray-300' : 'bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:text-gray-100'} disabled:cursor-not-allowed`}
             >
               {loading ? "Processing..." : "Generate Report"}
             </button>
@@ -1081,12 +1090,12 @@ export default function SalaryReport() {
           onCloseDownloadPopup={handleCloseDownloadPopup}
         >
           {/* Salary Report Preview Content */}
-          <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Salary Report Preview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('salary.salaryDetails')} {t('common.view')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className={`text-lg font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Employee Information</h3>
-              <div className={`p-4 rounded-md ${isDarkMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
-                <div className="grid grid-cols-2 gap-3">
+              <h3 className={`text-base font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('employee.employeeDetails')}</h3>
+              <div className={`p-3 rounded-md ${isDarkMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-sm text-gray-400">Name</p>
                     <p className="font-medium">
@@ -1205,6 +1214,10 @@ export default function SalaryReport() {
                 <div>
                   <p className="text-sm text-gray-400">PF</p>
                   <p className="font-medium">₹{pfAmount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">ESI</p>
+                  <p className="font-medium">₹{esiAmount}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Advance</p>

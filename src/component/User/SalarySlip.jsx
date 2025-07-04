@@ -9,6 +9,7 @@ import axios from "axios"
 import { FaDownload, FaPrint, FaMoneyBill } from "react-icons/fa"
 import "../DashoBoard/animations.css"
 import { useApp } from "../../context/AppContext"
+import { useTranslation } from 'react-i18next'
 
 // Helper: format date from "YYYY-MM-DD" to "DD-MM-YYYY"
 const formatDate = (dateStr) => {
@@ -102,6 +103,7 @@ const calculateSalaryComponents = (yearlyCTC) => {
 
 const SalarySlip = () => {
   const { user } = useApp()
+  const { t } = useTranslation()
   const [salaryData, setSalaryData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -140,7 +142,7 @@ const SalarySlip = () => {
     
     try {
       // This is a mock implementation - replace with actual API call
-      // const response = await axios.get(`http://localhost:8282/salary/slip/${user.id}?month=${month}&year=${year}`);
+      // const response = await axios.get(`https://api.managifyhr.com/salary/slip/${user.id}?month=${month}&year=${year}`);
       // setSalaryData(response.data);
       
       // Mock data for demonstration

@@ -17,12 +17,14 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { BiFilterAlt } from "react-icons/bi";
 import axios from "axios";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
 
 // Utility to get API base URL from env
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AddEmp() {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
   // States for Add/Update Employee fields
   const [firstName, setFname] = useState("");
   const [lastName, setLname] = useState("");
@@ -300,12 +302,12 @@ export default function AddEmp() {
 
     // Check package limit before adding
     if (packageCount !== null && employees.length >= packageCount) {
-      toast.error(`Cannot add employee: Package limit exceeded. You can add only ${packageCount} employees.`, { toastId: 'package-limit' });
+      toast.error(t('messages.packageLimitExceeded'), { toastId: 'package-limit' });
       return;
     }
 
     if (!subadminId) {
-      toast.error("Subadmin session expired. Please login again.");
+      toast.error(t('messages.sessionExpired'));
       return;
     }
 
@@ -372,7 +374,7 @@ export default function AddEmp() {
       );
 
     // API response handled above; no need to log response variable.
-      toast.success("Employee added successfully!");
+      toast.success(t('messages.employeeAddedSuccessfully'));
       setModal(false);
       handleReset(e);
 
@@ -477,7 +479,7 @@ export default function AddEmp() {
     );
 
     console.log("Update API response:", response);
-    toast.success("Employee Updated Successfully");
+    toast.success(t('messages.employeeUpdatedSuccessfully'));
     setUpdateModal(false);
     handleReset(e);
 
@@ -488,7 +490,7 @@ export default function AddEmp() {
     setEmployees(refreshResponse.data);
 
     // Show success message with back button
-    toast.success("Employee updated successfully!");
+    toast.success(t('messages.employeeUpdatedSuccessfully'));
 
     // Dispatch event to notify Dashboard of employee updates
     window.dispatchEvent(new Event("employeesUpdated"));
@@ -542,7 +544,7 @@ const confirmedDeleteEmp = async (empId) => {
     );
 
     console.log("API response:", response);
-    toast.success("Employee deleted successfully");
+    toast.success(t('messages.employeeDeletedSuccessfully'));
 
     // Refresh the employee list
     const refreshResponse = await axios.get(
@@ -642,7 +644,7 @@ const handleEditEmp = (employee) => {
 
     // Profile image - using the correct field name from the backend entity (empimg)
     if (employee.empimg) {
-      const profileImageUrl = `http://localhost:8282/images/profile/${employee.empimg}`;
+      const profileImageUrl = `https://api.managifyhr.com/images/profile/${employee.empimg}`;
       console.log("Setting profile image URL:", profileImageUrl);
       setEmpImgPreview(profileImageUrl);
 
@@ -657,7 +659,7 @@ const handleEditEmp = (employee) => {
 
     // Aadhar image - using the correct field name from the backend entity (adharimg)
     if (employee.adharimg) {
-      const aadharImageUrl = `http://localhost:8282/images/profile/${employee.adharimg}`;
+      const aadharImageUrl = `https://api.managifyhr.com/images/profile/${employee.adharimg}`;
       console.log("Setting aadhar image URL:", aadharImageUrl);
       setAdharImgPreview(aadharImageUrl);
 
@@ -672,7 +674,7 @@ const handleEditEmp = (employee) => {
 
     // PAN image - using the correct field name from the backend entity (panimg)
     if (employee.panimg) {
-      const panImageUrl = `http://localhost:8282/images/profile/${employee.panimg}`;
+      const panImageUrl = `https://api.managifyhr.com/images/profile/${employee.panimg}`;
       console.log("Setting PAN image URL:", panImageUrl);
       setPanImgPreview(panImageUrl);
 
@@ -700,7 +702,7 @@ const handleEditEmp = (employee) => {
             isDarkMode ? "text-blue-400" : "text-blue-600"
           }`}
         >
-          Employee Management
+          {t('navigation.employeeManagement')}
         </h1>
         <button
           onClick={() => setModal(!modal)}
@@ -710,7 +712,7 @@ const handleEditEmp = (employee) => {
               : "bg-blue-500 hover:bg-blue-600"
           } text-white flex items-center gap-2 transition-colors duration-200`}
         >
-          {modal ? "Cancel" : "Add Employee"}
+          {modal ? t('common.cancel') : t('navigation.addEmployee')}
         </button>
       </div>
 
@@ -763,9 +765,9 @@ const handleEditEmp = (employee) => {
                 : "bg-white text-gray-600"
             } rounded-lg shadow-md text-center`}
           >
-            <p className="mb-2">No employees found.</p>
+            <p className="mb-2">{t('messages.noDataAvailable')}</p>
             <p className="text-sm">
-              Click the "Add Employee" button to add your first employee.
+              {t('messages.noDataAvailable')}
             </p>
           </div>
         ) : (
@@ -778,13 +780,13 @@ const handleEditEmp = (employee) => {
                     : "bg-gray-100 text-gray-700"
                 }`}
               >
-                <th className="px-4 py-3 text-left">EMP ID</th>
-                <th className="px-4 py-3 text-left">NAME</th>
-                <th className="px-4 py-3 text-left">EMAIL</th>
-                {/* <th className="px-4 py-3 text-left">PHONE</th> */}
-                <th className="px-4 py-3 text-left">JOB ROLE</th>
-                <th className="px-4 py-3 text-left">STATUS</th>
-                <th className="px-4 py-3 text-center">ACTIONS</th>
+                <th className="px-3 py-2 text-left">EMP ID</th>
+                <th className="px-3 py-2 text-left">NAME</th>
+                <th className="px-3 py-2 text-left">EMAIL</th>
+                {/* <th className="px-3 py-2 text-left">PHONE</th> */}
+                <th className="px-3 py-2 text-left">JOB ROLE</th>
+                <th className="px-3 py-2 text-left">STATUS</th>
+                <th className="px-3 py-2 text-center">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -797,14 +799,14 @@ const handleEditEmp = (employee) => {
                       : "border-gray-200 hover:bg-gray-50"
                   } transition-colors`}
                 >
-                  <td className="px-4 py-3">{employee.empId}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">{employee.empId}</td>
+                  <td className="px-3 py-2">
                     {employee.firstName} {employee.lastName}
                   </td>
-                  <td className="px-4 py-3">{employee.email}</td>
-                  {/* <td className="px-4 py-3">{employee.phone}</td> */}
-                  <td className="px-4 py-3">{employee.jobRole}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">{employee.email}</td>
+                  {/* <td className="px-3 py-2">{employee.phone}</td> */}
+                  <td className="px-3 py-2">{employee.jobRole}</td>
+                  <td className="px-3 py-2">
                     <span
                       className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                         employee.status === "active" ||
@@ -820,14 +822,14 @@ const handleEditEmp = (employee) => {
                       {employee.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center space-x-2">
+                  <td className="px-3 py-2 text-center space-x-1">
                     <button
                       onClick={() => handleEditEmp(employee)}
-                      className={`p-2 rounded-full ${
+                      className={`action-btn p-1.5 rounded-full ${
                         isDarkMode
                           ? "bg-blue-600 hover:bg-blue-700"
                           : "bg-blue-500 hover:bg-blue-600"
-                      } text-white transition-all duration-200 hover:scale-110`}
+                      } text-white`}
                       title="Edit Employee"
                     >
                       <FiEdit size={16} />
@@ -840,10 +842,10 @@ const handleEditEmp = (employee) => {
                           empId: employee.empId,
                         })
                       }
-                      className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white shadow transition-all duration-200 hover:scale-110"
+                      className="action-btn p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
                       title="Delete Employee"
                     >
-                      <MdDeleteOutline size={18} />
+                      <MdDeleteOutline size={16} />
                     </button>
                     <button
                       onClick={() =>
@@ -853,10 +855,10 @@ const handleEditEmp = (employee) => {
                           empId: employee.empId,
                         })
                       }
-                      className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-200 hover:scale-110"
+                      className="action-btn p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow"
                       title="Send Login Email"
                     >
-                      <MdOutlineEmail size={18} />
+                      <MdOutlineEmail size={16} />
                     </button>
                   </td>
                 </tr>
@@ -941,17 +943,17 @@ const handleEditEmp = (employee) => {
                     {employee.status}
                   </span>
                 </div>
-                <div className="mt-3 pt-3 border-t flex justify-end space-x-3 text-sm">
+                <div className="mt-3 pt-3 border-t flex justify-end space-x-2 text-sm">
                   <button
                     onClick={() => handleEditEmp(employee)}
-                    className={`p-2 rounded-full ${
+                    className={`action-btn p-1.5 rounded-full ${
                       isDarkMode
                         ? "bg-blue-600 hover:bg-blue-700"
                         : "bg-blue-500 hover:bg-blue-600"
-                    } text-white transition-all duration-200 hover:scale-110`}
+                    } text-white`}
                     title="Edit Employee"
                   >
-                    <FiEdit size={18} />
+                    <FiEdit size={16} />
                   </button>
                   <button
                     onClick={() =>
@@ -961,10 +963,10 @@ const handleEditEmp = (employee) => {
                         empId: employee.empId,
                       })
                     }
-                    className="p-2 rounded-full bg-red-600 hover:bg-red-700 text-white shadow transition-all duration-200 hover:scale-110"
+                    className="action-btn p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow"
                     title="Delete Employee"
                   >
-                    <MdDeleteOutline size={18} />
+                    <MdDeleteOutline size={16} />
                   </button>
                   <button
                     onClick={() =>
@@ -974,10 +976,10 @@ const handleEditEmp = (employee) => {
                         empId: employee.empId,
                       })
                     }
-                    className="p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-200 hover:scale-110"
+                    className="action-btn p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow"
                     title="Send Login Email"
                   >
-                    <MdOutlineEmail size={18} />
+                    <MdOutlineEmail size={16} />
                   </button>
                 </div>
               </div>
@@ -1067,7 +1069,7 @@ const handleEditEmp = (employee) => {
                       isDarkMode ? "text-blue-400" : "text-blue-600"
                     }`}
                   >
-                    Add New Employee
+                    {t('employee.addNewEmployee')}
                   </h3>
                   <button
                     onClick={handleModalToggle}
@@ -1089,13 +1091,13 @@ const handleEditEmp = (employee) => {
                           isDarkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       >
-                        First Name:
+                        {t('auth.firstName')}:
                       </label>
                       <input
                         id="firstName"
                         value={firstName}
                         onChange={(e) => setFname(e.target.value)}
-                        placeholder="Enter your first name"
+                        placeholder={t('auth.enterFirstName')}
                         className={`block w-full px-4 py-2 ${
                           isDarkMode
                             ? "bg-slate-700 border-slate-600 text-white placeholder-gray-400"
@@ -1795,7 +1797,7 @@ const handleEditEmp = (employee) => {
                           : "bg-blue-500 hover:bg-blue-600"
                       } text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200`}
                     >
-                      Add Employee
+                      {t('navigation.addEmployee')}
                     </button>
                   </div>
                 </form>

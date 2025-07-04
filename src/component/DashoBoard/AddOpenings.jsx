@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import ConfirmDialog from "./ConfirmDialog";
 import { toast } from "react-toastify";
 import firebaseService from "../../services/firebaseService";
+import { useTranslation } from 'react-i18next';
 
 const ROLE_OPTIONS = [
   "Java Full Stack",
@@ -38,6 +39,7 @@ const JOB_TYPE_OPTIONS = ["Intern", "Full-time"];
 
 const AddOpenings = () => {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
   const location = useLocation();
   const [openings, setOpenings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,7 +77,7 @@ const AddOpenings = () => {
   const fetchOpenings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8282/api/openings/${subadminId}`);
+      const res = await axios.get(`https://api.managifyhr.com/api/openings/${subadminId}`);
       setOpenings(res.data || []);
     } catch {
       setOpenings([]);
@@ -111,7 +113,7 @@ const AddOpenings = () => {
     setLoading(true);
     try {
       if (editingId) {
-        await axios.put(`http://localhost:8282/api/openings/${subadminId}/${editingId}`, form);
+        await axios.put(`https://api.managifyhr.com/api/openings/${subadminId}/${editingId}`, form);
         toast.success("Opening updated successfully!");
       } else {
         console.log('🚀 Creating new job opening...');
@@ -119,7 +121,7 @@ const AddOpenings = () => {
         // Get FCM token for notification
         const { subadminToken } = await getFCMTokens();
 
-        const apiUrl = `http://localhost:8282/api/openings/${subadminId}/${subadminToken}`;
+        const apiUrl = `https://api.managifyhr.com/api/openings/${subadminId}/${subadminToken}`;
         console.log('📝 Job opening API URL:', apiUrl);
         console.log('📝 Form data:', form);
 
@@ -173,7 +175,7 @@ const AddOpenings = () => {
     if (!deleteTargetId) return;
     setLoading(true);
     try {
-      await axios.delete(`http://localhost:8282/api/openings/${subadminId}/${deleteTargetId}`);
+      await axios.delete(`https://api.managifyhr.com/api/openings/${subadminId}/${deleteTargetId}`);
       toast.success("Opening deleted successfully!");
       fetchOpenings();
     } catch (error) {
@@ -206,9 +208,9 @@ const AddOpenings = () => {
       style={{ boxSizing: 'border-box' }}>
       {/* Search and Add Button */}
       <div className="flex items-center gap-4 mb-6">
-        <input type="text" placeholder="Search openings..." value={search} onChange={e => setSearch(e.target.value)}
+        <input type="text" placeholder={t('placeholders.searchOpenings')} value={search} onChange={e => setSearch(e.target.value)}
           className={`flex-1 p-2 rounded-lg border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'}`} />
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" onClick={() => { setShowModal(true); setEditingId(null); }}>Add Openings</button>
+        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" onClick={() => { setShowModal(true); setEditingId(null); }}>{t('navigation.addJobOpening')}</button>
       </div>
       {/* Openings Table */}
       <div className="overflow-x-auto">

@@ -11,6 +11,8 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 // Add global error handler
 window.addEventListener('error', (event) => {
@@ -27,9 +29,11 @@ if (!rootElement) {
 try {
   createRoot(rootElement).render(
     <StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <I18nextProvider i18n={i18n}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </I18nextProvider>
     </StrictMode>
   );
   console.log("App rendered successfully");

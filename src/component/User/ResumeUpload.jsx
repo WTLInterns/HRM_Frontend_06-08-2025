@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import firebaseService from '../../services/firebaseService';
 import './ResumeUpload.css';
+import { useTranslation } from 'react-i18next';
 
 const ResumeUpload = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     jobRole: '',
     file: null
@@ -41,8 +43,12 @@ const ResumeUpload = () => {
   useEffect(() => {
     try {
       const rawUser = localStorage.getItem('user');
+      console.log('📋 Raw user data from localStorage:', rawUser);
       if (rawUser && rawUser !== 'null') {
         const user = JSON.parse(rawUser);
+        console.log('👤 Parsed user data:', user);
+        console.log('🆔 Employee ID:', user.empId);
+        console.log('🏢 Subadmin data:', user.subadmin);
         setUserData(user);
       }
     } catch (e) {
@@ -96,22 +102,29 @@ const ResumeUpload = () => {
 
   const getFCMTokens = async () => {
     try {
+      console.log('🔑 Getting FCM tokens...');
+      console.log('👤 Current user data:', userData);
+
       // Get current user's FCM token (employee)
       const userToken = await firebaseService.generateToken();
-      
+      console.log('🔑 Generated employee token:', userToken ? 'SUCCESS' : 'FAILED');
+
       // Get subadmin's FCM token from userData
       let subadminToken = userData?.subadmin?.fcmToken;
+      console.log('🏢 Subadmin FCM token from DB:', subadminToken ? 'FOUND' : 'NOT FOUND');
+
       if (!subadminToken) {
         console.log('⚠️ Subadmin FCM token not found, generating new one');
         subadminToken = await firebaseService.generateToken();
+        console.log('🔑 Generated subadmin token:', subadminToken ? 'SUCCESS' : 'FAILED');
       }
-      
+
       console.log('✅ Using Employee Token:', userToken?.substring(0, 20) + '...');
       console.log('✅ Using Subadmin Token:', subadminToken?.substring(0, 20) + '...');
-      
+
       return { userToken, subadminToken };
     } catch (error) {
-      console.error('Error getting FCM tokens:', error);
+      console.error('❌ Error getting FCM tokens:', error);
       return { userToken: 'default_user_token', subadminToken: 'default_subadmin_token' };
     }
   };
@@ -133,23 +146,33 @@ const ResumeUpload = () => {
       uploadData.append('file', formData.file);
       uploadData.append('jobRole', formData.jobRole);
 
-      const apiUrl = `http://localhost:8282/api/resume/upload/${userData.empId}/${userToken}/${subadminToken}`;
+      const apiUrl = `https://api.managifyhr.com/api/resume/upload/${userData.empId}/${userToken}/${subadminToken}`;
       console.log('🚀 Uploading resume to:', apiUrl);
       console.log('📝 Job role:', formData.jobRole);
       console.log('📄 File:', formData.file.name);
+
+      console.log('📤 Sending resume upload request...');
+      console.log('🔗 API URL:', apiUrl);
+      console.log('👤 Employee ID:', userData.empId);
+      console.log('🏢 Subadmin ID:', userData.subadmin?.id);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: uploadData
       });
 
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', response.headers);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ Resume upload failed:', errorText);
         throw new Error(errorText || 'Failed to upload resume');
       }
 
       const result = await response.json();
-      console.log('Resume uploaded successfully:', result);
+      console.log('✅ Resume uploaded successfully:', result);
+      console.log('🔔 Notification should be sent to subadmin ID:', userData.subadmin?.id);
       
       toast.success('Resume uploaded successfully! Admin will be notified.');
       

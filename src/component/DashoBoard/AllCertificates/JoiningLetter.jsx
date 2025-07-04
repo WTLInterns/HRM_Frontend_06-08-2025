@@ -68,7 +68,7 @@ const JoiningLetter = () => {
         const email = user.email || "arbaj.shaikh2034@gmail.com";
         
         console.log("Fetching subadmin data for email:", email);
-        const response = await axios.get(`http://localhost:8282/api/subadmin/subadmin-by-email/${email}`);
+        const response = await axios.get(`https://api.managifyhr.com/api/subadmin/subadmin-by-email/${email}`);
         console.log("Subadmin API Response:", response.data);
         setSubadmin(response.data);
         fetchEmployees(response.data.id);
@@ -87,7 +87,7 @@ const JoiningLetter = () => {
   const fetchEmployees = async (subadminId) => {
     try {
       console.log(`Fetching employees for subadmin ID: ${subadminId}`);
-      const response = await axios.get(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
       console.log("Employees API Response:", response.data);
       setEmployees(response.data);
       setLoading(false);
@@ -216,7 +216,7 @@ const JoiningLetter = () => {
 
       // 3. Send to backend as multipart/form-data
       const documentType = 'joining';
-      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/${documentType}`;
+      const apiUrl = `https://api.managifyhr.com/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/${documentType}`;
       const response = await axios.post(apiUrl, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -586,7 +586,7 @@ const JoiningLetter = () => {
                   <div>
                     {subadmin && subadmin.companylogo ? (
                       <img
-                        src={`http://localhost:8282/images/profile/${subadmin.companylogo}`}
+                        src={`https://api.managifyhr.com/images/profile/${subadmin.companylogo}`}
                         alt="Company Logo"
                         className="h-16 object-contain"
                         onError={(e) => {
@@ -789,7 +789,7 @@ const JoiningLetter = () => {
                     <p className="font-semibold mb-1">For <strong>{subadmin?.registercompanyname || 'Company Name'}</strong></p>
                     {subadmin && subadmin.signature ? (
                       <img
-                        src={`http://localhost:8282/images/profile/${subadmin.signature}`}
+                        src={`https://api.managifyhr.com/images/profile/${subadmin.signature}`}
                         alt="Authorized Signature"
                         className="h-16 object-contain ml-auto mb-2"
                         onError={(e) => {

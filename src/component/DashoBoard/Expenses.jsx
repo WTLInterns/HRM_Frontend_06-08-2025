@@ -21,6 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
 
 const style = (isDarkMode) => ({
   position: "absolute",
@@ -36,7 +37,7 @@ const style = (isDarkMode) => ({
   borderRadius: 2,
 });
 
-const API_BASE = `http://localhost:8282/api/expenses`;
+const API_BASE = `https://api.managifyhr.com/api/expenses`;
 
 const initialForm = {
   expenseId: "",
@@ -51,6 +52,7 @@ const initialForm = {
 
 export default function Expenses() {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
   const [expenses, setExpenses] = useState([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -198,27 +200,27 @@ export default function Expenses() {
       <Modal open={deleteDialogOpen} onClose={handleCloseDeleteDialog} aria-labelledby="delete-expense-title" aria-describedby="delete-expense-description">
         <Box sx={style(isDarkMode)}>
           <Typography id="delete-expense-title" variant="h6" component="h2" sx={{ mb: 2, color: isDarkMode ? '#38bdf8' : '#1976d2' }}>
-            Confirm Deletion
+            {t('common.confirmDeletion')}
           </Typography>
           <Typography id="delete-expense-description" sx={{ mb: 3 }}>
-            Are you sure you want to delete this expense?
+            {t('common.confirmDelete')}
             <br />
             <span style={{ fontWeight: 'bold', color: isDarkMode ? '#f87171' : '#dc2626' }}>
-              {expenseToDelete && `Bill No: ${expenseToDelete.billNo}, Amount: ₹${expenseToDelete.amount}`}
+              {expenseToDelete && `${t('expenses.billNo')}: ${expenseToDelete.billNo}, ${t('expenses.amount')}: ₹${expenseToDelete.amount}`}
             </span>
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button onClick={handleCloseDeleteDialog} variant="outlined" color="primary">
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleConfirmDelete} variant="contained" color="error">
-              Yes, Delete
+              {t('common.delete')}
             </Button>
           </Box>
         </Box>
       </Modal>
       <div className={`p-2 sm:p-4 md:p-8 ${isDarkMode ? 'bg-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'} min-h-screen`}>
-        <h1 className={`text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Expenses</h1>
+        <h1 className={`text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('navigation.expenses')}</h1>
         <div className={`mb-6 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-2 sm:p-4 rounded-lg shadow-md border`}>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative flex-grow w-full sm:w-auto">
@@ -227,7 +229,7 @@ export default function Expenses() {
               </div>
               <input
                 type="text"
-                placeholder="Search by bill no, amount, transaction id..."
+                placeholder={t('placeholders.searchExpenses')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className={`block w-full sm:w-72 pl-10 pr-3 py-2 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-gray-100' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400`}
@@ -237,7 +239,7 @@ export default function Expenses() {
               className={`w-full sm:w-auto px-4 py-2 rounded-md font-semibold shadow-md focus:outline-none transition-colors ${isDarkMode ? 'bg-blue-400 text-slate-900 hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
               onClick={() => handleOpen()}
             >
-              Add Expenses
+              {t('expenses.addExpense')}
             </button>
           </div>
         </div>
@@ -245,12 +247,12 @@ export default function Expenses() {
           <table className={`w-full border-collapse border ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-white'} shadow-md`}>
             <thead>
               <tr className={`${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'} text-left`}>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Date</th>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Bill No</th>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Amount</th>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Transaction ID</th>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Reason</th>
-                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>Action</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('common.date')}</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('expenses.billNo')}</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('expenses.amount')}</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('expenses.transactionId')}</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('expenses.reason')}</th>
+                <th className={`border ${isDarkMode ? 'border-slate-600 text-blue-400' : 'border-gray-200 text-blue-600'} px-4 py-2`}>{t('common.action')}</th>
               </tr>
             </thead>
             <tbody>
@@ -269,7 +271,7 @@ export default function Expenses() {
               ))}
               {filteredExpenses.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center text-gray-400 py-4">{loading ? "Loading..." : "No expenses found"}</td>
+                  <td colSpan={6} className="text-center text-gray-400 py-4">{loading ? t('common.loading') : t('expenses.noExpensesFound')}</td>
                 </tr>
               )}
             </tbody>
@@ -339,38 +341,38 @@ export default function Expenses() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <h2 className="text-2xl font-bold mb-8 text-[#3fa9f5]">{editId ? "Edit Expense" : "Add Expense"}</h2>
+          <h2 className="text-2xl font-bold mb-8 text-[#3fa9f5]">{editId ? t('expenses.editExpense') : t('expenses.addExpense')}</h2>
           <form>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="date">Date</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="date">{t('common.date')}</label>
                 <input type="date" id="date" name="date" value={form.date} onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
               </div>
               <div>
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="billNo">Bill No</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="billNo">{t('expenses.billNo')}</label>
                 <input type="text" id="billNo" name="billNo" value={form.billNo} onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
               </div>
               <div>
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="amount">Amount</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="amount">{t('expenses.amount')}</label>
                 <input type="number" id="amount" name="amount" value={form.amount} onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
               </div>
               <div>
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="transactionId">Transaction ID</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="transactionId">{t('expenses.transactionId')}</label>
                 <input type="text" id="transactionId" name="transactionId" value={form.transactionId} onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="reason">Reason</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="reason">{t('expenses.reason')}</label>
                 <textarea id="reason" name="reason" value={form.reason} onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="billImageFile">Bill Image</label>
+                <label className="block text-[#bfc9db] font-semibold text-sm uppercase tracking-wide mb-1" htmlFor="billImageFile">{t('expenses.billImage')}</label>
                 <input type="file" id="billImageFile" name="billImageFile" onChange={handleChange} className="bg-[#223054] border-[#223054] text-[#bfc9db] placeholder:text-[#6e7ca0] rounded-lg px-4 py-2 w-full border" />
                 {editId && form.billImage && !form.billImageFile && (
                   <div className="mt-3">
                     <div className="text-[#bfc9db] text-xs mb-1">Actual Bill Image:</div>
-                    <a href={`http://localhost:8282/images/profile/${form.billImage}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`https://api.managifyhr.com/images/profile/${form.billImage}`} target="_blank" rel="noopener noreferrer">
                       <img
-                        src={`http://localhost:8282/images/profile/${form.billImage}`}
+                        src={`https://api.managifyhr.com/images/profile/${form.billImage}`}
                         alt="Bill"
                         className="border border-[#223054] rounded-lg max-h-32 bg-[#17233e] cursor-pointer hover:opacity-80 transition"
                         style={{ marginTop: 10 }}

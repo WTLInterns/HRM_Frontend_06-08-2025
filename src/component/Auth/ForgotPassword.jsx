@@ -5,9 +5,12 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaEnvelope, FaKey, FaArrowLeft, FaSpinner } from "react-icons/fa";
 import "../DashoBoard/animations.css";
+import { useTranslation } from 'react-i18next';
+import LanguageToggle from "../../components/LanguageToggle";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,7 +27,7 @@ const ForgotPassword = () => {
       // Try masteradmin reset first
       try {
         const masterAdminResponse = await axios.post(
-          `http://localhost:8282/masteradmin/forgot-password/request?email=${email}`
+          `https://api.managifyhr.com/masteradmin/forgot-password/request?email=${email}`
         );
         
         console.log("Master Admin OTP request response:", masterAdminResponse.data);
@@ -46,7 +49,7 @@ const ForgotPassword = () => {
         console.log("Not a master admin user, trying subadmin endpoint");
         // If masteradmin request fails, try subadmin endpoint
         const subadminResponse = await axios.post(
-          `http://localhost:8282/api/subadmin/forgot-password/request?email=${email}`
+          `https://api.managifyhr.com/api/subadmin/forgot-password/request?email=${email}`
         );
         
         console.log("Subadmin OTP request response:", subadminResponse.data);
@@ -66,8 +69,8 @@ const ForgotPassword = () => {
       }
     } catch (error) {
       console.error("Error requesting OTP:", error.response || error);
-      setError(error.response?.data || "Failed to send OTP. Please check if the email is registered.");
-      toast.error(error.response?.data || "Failed to send OTP");
+      setError(error.response?.data || t('auth.failedToSendOTP'));
+      toast.error(error.response?.data || t('auth.failedToSendOTP'));
       setLoading(false);
     }
   };
@@ -79,6 +82,11 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen relative overflow-hidden animate-fadeIn bg-slate-900">
+      {/* Language Toggle in top-right corner */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageToggle position="right" />
+      </div>
+
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute w-full h-full bg-login-image opacity-10"></div>
@@ -105,24 +113,24 @@ const ForgotPassword = () => {
         {/* Form Card */}
         <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden animate-scaleIn animate-delay-500">
           <div className="p-8">
-            <button 
+            <button
               onClick={goToLogin}
               className="flex items-center text-blue-400 hover:text-blue-300 mb-6 transition-all duration-300"
             >
-              <FaArrowLeft className="mr-2" /> Back to Login
+              <FaArrowLeft className="mr-2" /> {t('auth.backToLogin')}
             </button>
-            
+
             {error && (
               <div className="bg-red-900/30 border border-red-800 rounded-lg p-3 mb-4 animate-pulse">
                 <p className="text-red-400 text-sm">{error}</p>
               </div>
             )}
-            
+
             {/* Request OTP Form */}
             <form onSubmit={handleRequestOTP} className="space-y-5">
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                  Email Address
+                  {t('auth.emailAddress')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -135,7 +143,7 @@ const ForgotPassword = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="block w-full pl-10 pr-3 py-3 bg-slate-700/50 border border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-100"
-                    placeholder="Enter your email address"
+                    placeholder={t('auth.enterEmailAddress')}
                   />
                 </div>
               </div>
@@ -149,10 +157,10 @@ const ForgotPassword = () => {
                   {loading ? (
                     <>
                       <FaSpinner className="animate-spin mr-2" />
-                      <span>Sending...</span>
+                      <span>{t('common.loading')}</span>
                     </>
                   ) : (
-                    "Send OTP & Continue"
+                    t('auth.requestOTP')
                   )}
                 </button>
               </div>

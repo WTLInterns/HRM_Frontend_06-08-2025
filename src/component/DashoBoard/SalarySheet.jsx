@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaTimes, FaSearch } from "react-icons/fa";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
 
 const SalarySheet = () => {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,7 +28,7 @@ const SalarySheet = () => {
         console.log("Fetching employees for subadmin ID:", subadminId);
         
         // Call the API with the correct endpoint
-        const response = await axios.get(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
+        const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
         
         console.log("Employee data received:", response.data);
         setEmployees(response.data);
@@ -74,8 +76,8 @@ const SalarySheet = () => {
 
   return (
     <div className={`p-3 sm:p-6 ${isDarkMode ? 'bg-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'} min-h-screen`}>
-      <h1 className={`text-xl sm:text-2xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{employees[0]?.subadminName || "Employee"} Salary Sheet</h1>
-      <p className={`italic mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Employee Salary Sheet</p>
+      <h1 className={`text-xl sm:text-2xl font-bold mb-2 sm:mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('navigation.salarySheet')}</h1>
+      <p className={`italic mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t('navigation.salarySheet')}</p>
       
       {/* Search bar */}
       <div className={`mb-6 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-4 rounded-lg shadow-md border`}>
@@ -86,7 +88,7 @@ const SalarySheet = () => {
             </div>
             <input
               type="text"
-              placeholder="Search by employee name..."
+              placeholder={t('placeholders.searchByEmployeeName')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`block w-full pl-10 pr-3 py-2 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-gray-100' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400`}

@@ -3,9 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useApp } from "../../context/AppContext";
+import { useTranslation } from 'react-i18next';
+import LanguageToggle from "../../components/LanguageToggle";
 
 const SignUp = () => {
   const { saveUser } = useApp();
+  const { t } = useTranslation();
   const [firstName, setFname] = useState("");
   const [lastName, setLname] = useState("");
   const [email, setEmail] = useState("");
@@ -24,28 +27,33 @@ const SignUp = () => {
     setSuccess("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t('auth.passwordsDoNotMatch'));
       return;
     }
 
     try {
       const userData = { firstName, lastName, email, phone, password, role };
       await saveUser(userData);
-      setSuccess("User registered successfully!");
-      toast.success("Registed Successfully");
+      setSuccess(t('messages.employeeAddedSuccessfully'));
+      toast.success(t('auth.registeredSuccessfully'));
     } catch (err) {
       if (err.response && err.response.status === 400) {
-        setError("Email is already existed");
+        setError(t('auth.emailAlreadyExists'));
       } else {
-        setError("Failed to register user");
+        setError(t('auth.failedToRegister'));
       }
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 page-container">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 page-container relative">
+      {/* Language Toggle in top-right corner */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageToggle position="right" />
+      </div>
+
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md transform transition duration-500 hover:shadow-2xl card">
-        <h2 className="text-3xl font-semibold text-center mb-6 text-gray-800 transition-all duration-300 hover:scale-105">Sign Up</h2>
+        <h2 className="text-3xl font-semibold text-center mb-6 text-gray-800 transition-all duration-300 hover:scale-105">{t('auth.signUp')}</h2>
         {error && <p className="text-red-500 text-center animate-pulse">{error}</p>}
         {success && <p className="text-green-500 text-center animate-pulse">{success}</p>}
         <form className="space-y-4" onSubmit={handleSignUp}>
@@ -54,7 +62,7 @@ const SignUp = () => {
               htmlFor="fname"
               className="block text-sm font-medium text-gray-700"
             >
-              First Name
+              {t('auth.firstName')}
             </label>
             <input
               type="text"
@@ -62,6 +70,7 @@ const SignUp = () => {
               value={firstName}
               onChange={(e) => setFname(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.enterFirstName')}
               required
             />
           </div>
@@ -71,7 +80,7 @@ const SignUp = () => {
               htmlFor="lname"
               className="block text-sm font-medium text-gray-700"
             >
-              Last Name
+              {t('auth.lastName')}
             </label>
             <input
               type="text"
@@ -79,6 +88,7 @@ const SignUp = () => {
               value={lastName}
               onChange={(e) => setLname(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.enterLastName')}
               required
             />
           </div>
@@ -88,7 +98,7 @@ const SignUp = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              Email Address
+              {t('auth.emailAddress')}
             </label>
             <input
               type="email"
@@ -96,6 +106,7 @@ const SignUp = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.enterEmailAddress')}
               required
             />
           </div>
@@ -105,7 +116,7 @@ const SignUp = () => {
               htmlFor="phone"
               className="block text-sm font-medium text-gray-700"
             >
-              Phone No
+              {t('auth.phoneNumber')}
             </label>
             <input
               type="tel"
@@ -113,6 +124,7 @@ const SignUp = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.enterPhoneNumber')}
               required
             />
           </div>
@@ -122,7 +134,7 @@ const SignUp = () => {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              Password
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -130,6 +142,7 @@ const SignUp = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.enterPassword')}
               required
             />
           </div>
@@ -139,7 +152,7 @@ const SignUp = () => {
               htmlFor="confirm-password"
               className="block text-sm font-medium text-gray-700"
             >
-              Confirm Password
+              {t('auth.confirmPassword')}
             </label>
             <input
               type="password"
@@ -147,6 +160,7 @@ const SignUp = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out hover:border-indigo-300"
+              placeholder={t('auth.confirmPassword')}
               required
             />
           </div>
@@ -155,14 +169,14 @@ const SignUp = () => {
             type="submit"
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition duration-300 hover:translate-y-[-2px] hover:shadow-md active:translate-y-[1px] relative overflow-hidden btn"
           >
-            Sign Up
+            {t('auth.signUp')}
             <span className="absolute inset-0 bg-white opacity-20 transform scale-x-0 origin-left transition-transform group-hover:scale-x-100"></span>
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600 transform transition duration-300 hover:scale-105">
-          Already have an account?{" "}
+          {t('auth.alreadyHaveAccount')}{" "}
           <Link to="/" className="text-indigo-600 hover:text-indigo-800 transition duration-300 hover:underline">
-            Login
+            {t('auth.login')}
           </Link>
         </p>
       </div>

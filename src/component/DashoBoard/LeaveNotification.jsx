@@ -8,6 +8,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import firebaseService from '../../services/firebaseService';
+import { useTranslation } from 'react-i18next';
 
   /**
    * Component for managing leave notifications and approvals.
@@ -16,6 +17,7 @@ import firebaseService from '../../services/firebaseService';
    * Handles fetching and displaying leave data, employee suggestions, and managing dialog states.
    */
 const LeaveNotification = () => {
+  const { t } = useTranslation();
   // --- Get subadminId/userRole FIRST ---
   let userData = null;
   try {
@@ -41,7 +43,7 @@ const LeaveNotification = () => {
     if (!showPendingDialog || !pendingDate || !subadminId) return;
     setPendingLeavesLoading(true);
     setPendingLeavesError(null);
-    fetch(`http://localhost:8282/api/leaveform/${subadminId}/all`)
+    fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/all`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch pending leaves');
         return res.json();
@@ -168,7 +170,7 @@ useEffect(() => {
     const fetchEmployees = async () => {
       if (userRole === 'SUBADMIN' && subadminId) {
         try {
-          const res = await fetch(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
+          const res = await fetch(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
           if (!res.ok) throw new Error('Failed to fetch employees');
           const data = await res.json();
           console.log('Fetched employees:', data); // Debug log
@@ -207,7 +209,7 @@ useEffect(() => {
           return;
         }
 
-        const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
+        const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${empIdToUse}`);
         if (!response.ok) throw new Error('Failed to fetch leave data');
         const data = await response.json();
         const mapped = data.map(item => ({
@@ -252,7 +254,7 @@ useEffect(() => {
         setLoading(false);
         return;
       }
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
+      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${empIdToUse}`);
       if (!response.ok) throw new Error('Failed to fetch leave data');
       const data = await response.json();
       const mapped = data.map(item => ({
@@ -325,7 +327,7 @@ useEffect(() => {
       // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
       const { userToken, subadminToken } = await getFCMTokens(leave);
 
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
@@ -351,7 +353,7 @@ useEffect(() => {
       // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
       const { userToken, subadminToken } = await getFCMTokens(leave);
 
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
@@ -380,7 +382,7 @@ useEffect(() => {
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leaveToDelete.original.employee.empId}/${deleteTargetId}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leaveToDelete.original.employee.empId}/${deleteTargetId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete leave');
@@ -405,7 +407,7 @@ useEffect(() => {
   return (
     <div className="p-4">
     <div className={`leave-notification-container ${isDarkMode ? 'dark' : 'light'}`}>
-      <h2 className="leave-notification-title">Leave Approval</h2>
+      <h2 className="leave-notification-title">{t('navigation.leaveApproval')}</h2>
       {/* View Pending Leaves Button */}
 
 
@@ -435,7 +437,7 @@ useEffect(() => {
             letterSpacing: 0.5
           }}
         >
-          View Pending Leaves by Date
+          {t('navigation.viewPendingLeaves')}
         </DialogTitle>
         <DialogContent style={{paddingTop: 10, paddingBottom: 6}}>
           <input

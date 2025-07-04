@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { FaFileAlt, FaFileSignature, FaFileContract, FaFileInvoiceDollar, FaUserTie, FaArrowUp, FaUserMinus, FaCertificate, FaAward, FaChartLine, FaStar } from 'react-icons/fa';
 import { MdBusinessCenter } from 'react-icons/md';
 import { useApp } from '../../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 const Certificates = () => {
   const { isDarkMode } = useApp();
+  const { t } = useTranslation();
 
   // Add console logging to help with debugging
   console.log("Certificates Component Rendering");
@@ -108,7 +110,7 @@ const Certificates = () => {
 
   return (
     <div className={`p-4 ${isDarkMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white/90 border-gray-200'} backdrop-blur-md rounded-lg shadow-lg border animate-fadeIn`}>
-      <h1 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Letters</h1>
+      <h1 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{t('navigation.letters')}</h1>
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {certificateTypes.map((cert, index) => (
@@ -135,7 +137,7 @@ const Certificates = () => {
       </div>
 
       <div className="mt-6">
-        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Certificates</h2>
+        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{t('navigation.certificates')}</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {internshipCertificates.map((cert, index) => (
             <Link

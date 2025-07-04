@@ -6,14 +6,19 @@ import Attendance from "./Attendance";
 import TrackEmployee from "./TrackEmployee";
 import AddOpenings from "./AddOpenings";
 import Resume from "./Resume";
+import EmergencyMessage from "./EmergencyMessage";
+import SetSalary from "./SetSalary";
 import SalarySheet from "./SalarySheet";
 import SalarySlip from "./SalarySlip";
 import AddEmp from "./AddEmp";
 import ViewAttendance from "./ViewAttendance";
+import CheckImages from "./CheckImages";
 import { IoIosLogOut, IoIosPersonAdd } from "react-icons/io";
 import { LuNotebookPen } from "react-icons/lu";
 import { MdOutlinePageview, MdKeyboardArrowDown, MdKeyboardArrowRight, MdDashboard } from "react-icons/md";
-import { FaReceipt, FaCalendarAlt, FaRegIdCard, FaExclamationTriangle, FaTimes, FaSignOutAlt, FaChartPie, FaArrowUp, FaArrowDown, FaMoon, FaSun, FaFileAlt, FaBell, FaUserCog, FaBriefcase } from "react-icons/fa";
+import LanguageToggle from "../../components/LanguageToggle";
+import { useTranslation } from 'react-i18next';
+import { FaReceipt, FaCalendarAlt, FaRegIdCard, FaExclamationTriangle, FaTimes, FaSignOutAlt, FaChartPie, FaArrowUp, FaArrowDown, FaMoon, FaSun, FaFileAlt, FaBell, FaUserCog, FaBriefcase, FaRupeeSign } from "react-icons/fa";
 import { BiSolidSpreadsheet } from "react-icons/bi";
 import { HiMenu, HiX } from "react-icons/hi";
 import { useApp } from "../../context/AppContext";
@@ -57,6 +62,7 @@ const scrollbarStyles = `
 const Dashboard = () => {
   const { fetchAllEmp, emp, logoutUser, isDarkMode, toggleTheme } = useApp();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // State declarations
   const [expenses, setExpenses] = useState([]);
@@ -69,8 +75,8 @@ const Dashboard = () => {
   const [showBirthdayPopup, setShowBirthdayPopup] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [attendanceDropdownOpen, setAttendanceDropdownOpen] = useState(false);
-  const [certificatesDropdownOpen, setCertificatesDropdownOpen] = useState(false);
   const [openingsDropdownOpen, setOpeningsDropdownOpen] = useState(false);
+  const [salaryDropdownOpen, setSalaryDropdownOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isProfitable, setIsProfitable] = useState(false);
@@ -92,7 +98,7 @@ const Dashboard = () => {
     status: "active",
   });
   const [logoLoadAttempt, setLogoLoadAttempt] = useState(0);
-  const BACKEND_URL = useMemo(() => "http://localhost:8282", []);
+  const BACKEND_URL = useMemo(() => "https://api.managifyhr.com", []);
   const defaultImage = "/image/admin-profile.jpg";
 
   // Handle inactive user logout with polling
@@ -429,8 +435,8 @@ const Dashboard = () => {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleAttendanceDropdown = () => setAttendanceDropdownOpen(!attendanceDropdownOpen);
-  const toggleCertificatesDropdown = () => setCertificatesDropdownOpen(!certificatesDropdownOpen);
   const toggleOpeningsDropdown = () => setOpeningsDropdownOpen(!openingsDropdownOpen);
+  const toggleSalaryDropdown = () => setSalaryDropdownOpen(!salaryDropdownOpen);
   const handleLogoutClick = () => setShowLogoutModal(true);
   const confirmLogout = () => {
     setShowLogoutModal(false);
@@ -441,24 +447,29 @@ const Dashboard = () => {
 
   // Navigation links
   const navLinks = [
-    { to: "/dashboard", label: "Dashboard", icon: <MdDashboard /> },
-    { to: "/dashboard/profileform", label: "Profile", icon: <FaRegIdCard /> },
-    { to: "/dashboard/addEmp", label: "Add Employee", icon: <IoIosPersonAdd /> },
-    { label: "Attendance", icon: <LuNotebookPen />, dropdown: true, children: [
-      { to: "/dashboard/attendance", label: "Mark Attendance", icon: <FaCalendarAlt /> },
-      { to: "/dashboard/viewAtt", label: "View Attendance", icon: <MdOutlinePageview /> },
+    { to: "/dashboard", label: t('navigation.dashboard'), icon: <MdDashboard /> },
+    { to: "/dashboard/profileform", label: t('navigation.profile'), icon: <FaRegIdCard /> },
+    { to: "/dashboard/addEmp", label: t('navigation.addEmployee'), icon: <IoIosPersonAdd /> },
+    { id: 'attendance', label: t('navigation.attendance'), icon: <LuNotebookPen />, dropdown: true, children: [
+      { to: "/dashboard/attendance", label: t('navigation.markAttendance'), icon: <FaCalendarAlt /> },
+      { to: "/dashboard/viewAtt", label: t('navigation.viewAttendance'), icon: <MdOutlinePageview /> },
+      { to: "/dashboard/check-images", label: t('navigation.checkImages'), icon: <FaFileAlt /> },
     ]},
-    { to: "/dashboard/salarysheet", label: "Salary Sheet", icon: <BiSolidSpreadsheet /> },
-    { to: "/dashboard/salaryslip", label: "Salary Slip", icon: <FaReceipt /> },
-    { to: "/dashboard/certificates", label: "Certificates", icon: <FaFileAlt /> },
-    { to: "/dashboard/expenses", label: "Expenses", icon: <FaArrowDown /> },
-    { to: "/dashboard/reminders", label: "Set Reminder", icon: <FaBell /> },
-    { to: "/dashboard/leave-notification", label: "Leave Approval", icon: <FaExclamationTriangle /> },
-    { to: "/dashboard/track-employee", label: "Track Employee", icon: <FaUserCog /> },
-    { label: "Openings", icon: <FaBriefcase />, dropdown: true, children: [
-      { to: "/dashboard/add-openings", label: "Add Opening", icon: <FaArrowDown className="text-blue-400" /> },
-      { to: "/dashboard/resume", label: "Check Resume", icon: <FaArrowDown className="text-blue-400" /> },
+    { id: 'salary', label: t('navigation.salary'), icon: <FaRupeeSign />, dropdown: true, children: [
+      { to: "/dashboard/set-salary", label: t('navigation.setSalary'), icon: <FaArrowDown className="text-blue-400" /> },
+      { to: "/dashboard/salarysheet", label: t('navigation.salarySheet'), icon: <BiSolidSpreadsheet className="text-blue-400" /> },
+      { to: "/dashboard/salaryslip", label: t('navigation.salarySlip'), icon: <FaReceipt className="text-blue-400" /> },
     ]},
+    { to: "/dashboard/certificates", label: t('navigation.certificates'), icon: <FaFileAlt /> },
+    { to: "/dashboard/expenses", label: t('navigation.expenses'), icon: <FaArrowDown /> },
+    { to: "/dashboard/reminders", label: t('navigation.setReminder'), icon: <FaBell /> },
+    { to: "/dashboard/leave-notification", label: t('navigation.leaveApproval'), icon: <FaExclamationTriangle /> },
+    { to: "/dashboard/track-employee", label: t('navigation.trackEmployee'), icon: <FaUserCog /> },
+    { id: 'openings', label: t('navigation.openings'), icon: <FaBriefcase />, dropdown: true, children: [
+      { to: "/dashboard/add-openings", label: t('navigation.addOpening'), icon: <FaArrowDown className="text-blue-400" /> },
+      { to: "/dashboard/resume", label: t('navigation.resume'), icon: <FaArrowDown className="text-blue-400" /> },
+    ]},
+    { to: "/dashboard/emergency-message", label: t('navigation.emergencyMessage'), icon: <FaExclamationTriangle /> },
   ];
 
   const handleLogoError = () => {
@@ -589,8 +600,12 @@ const Dashboard = () => {
           {mobileMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
         </button>
       </div>
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-center p-4 bg-slate-800 text-white shadow-md">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-slate-800 text-white shadow-md">
+        <div></div>
         <h1 className="text-xl font-bold animate-pulse-slow">{userData.registercompanyname || "TECH mahindra"}</h1>
+        <div className="flex items-center gap-2">
+          <LanguageToggle position="right" />
+        </div>
       </div>
       <aside className={`w-64 h-full ${isDarkMode ? "bg-slate-800" : "bg-white shadow-lg"} fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform transition-transform duration-300 ease-in-out flex flex-col ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className={`flex flex-col items-center px-4 py-5 ${isDarkMode ? "bg-slate-900 border-slate-700" : "bg-blue-50 border-blue-200"} border-b relative flex-shrink-0`}>
@@ -607,6 +622,9 @@ const Dashboard = () => {
               <p className={`${isDarkMode ? "text-blue-400" : "text-blue-600"} group-hover:text-blue-300 transition-all duration-300 text-center`}>Hrm Dashboard</p>
             )}
           </Link>
+          <div className="absolute top-4 left-4 flex items-center gap-2">
+            <LanguageToggle position="left" />
+          </div>
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <NotificationBell />
             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-700/50 transition-all duration-300" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
@@ -619,15 +637,15 @@ const Dashboard = () => {
             {navLinks.map((link, index) => (
               link.dropdown ? (
                 <div key={index} className="mb-1 animate-fadeIn" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <button onClick={link.label === "Attendance" ? toggleAttendanceDropdown : link.label === "Certificates" ? toggleCertificatesDropdown : toggleOpeningsDropdown} className="flex items-center justify-between w-full gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item ripple">
+                  <button onClick={link.id === "attendance" ? toggleAttendanceDropdown : link.id === "salary" ? toggleSalaryDropdown : toggleOpeningsDropdown} className="flex items-center justify-between w-full gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item ripple">
                     <div className="flex items-center gap-2">{link.icon && <span className="text-blue-400 w-6">{link.icon}</span>} {link.label}</div>
-                    {(link.label === "Attendance" ? attendanceDropdownOpen : link.label === "Certificates" ? certificatesDropdownOpen : openingsDropdownOpen) ? (
+                    {(link.id === "attendance" ? attendanceDropdownOpen : link.id === "salary" ? salaryDropdownOpen : openingsDropdownOpen) ? (
                       <MdKeyboardArrowDown className="transition-transform duration-300 text-blue-400" />
                     ) : (
                       <MdKeyboardArrowRight className="transition-transform duration-300 text-blue-400" />
                     )}
                   </button>
-                  {((link.label === "Attendance" && attendanceDropdownOpen) || (link.label === "Certificates" && certificatesDropdownOpen) || (link.label === "Openings" && openingsDropdownOpen)) && (
+                  {((link.id === "attendance" && attendanceDropdownOpen) || (link.id === "salary" && salaryDropdownOpen) || (link.id === "openings" && openingsDropdownOpen)) && (
                     <div className="pl-8 mt-1 space-y-1 animate-slideIn">
                       {link.children.map((child, childIndex) => (
                         <Link key={childIndex} to={child.to} state={child.state} className="flex items-center gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item hover:translate-x-2" onClick={closeMobileMenu}>
@@ -647,7 +665,7 @@ const Dashboard = () => {
         </nav>
         <div className="mt-auto px-4 pb-6 flex-shrink-0">
           <button onClick={handleLogoutClick} className="flex items-center justify-center gap-2 p-3 w-full rounded bg-red-600 hover:bg-red-700 text-white transition-all duration-300 hover:translate-y-[-2px] hover:shadow-md btn-interactive">
-            <FaSignOutAlt className="text-white" /> Logout
+            <FaSignOutAlt className="text-white" /> {t('auth.logout')}
           </button>
         </div>
       </aside>
@@ -659,22 +677,22 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className={`rounded-lg shadow-md p-6 flex flex-col items-center ${isDarkMode ? "bg-slate-900 text-cyan-300" : "bg-white text-cyan-700"}`}>
               <span className="text-4xl mb-2">👥</span>
-              <div className="text-lg font-semibold mb-1">Total Employees</div>
+              <div className="text-lg font-semibold mb-1">{t('dashboard.totalEmployees')}</div>
               <div className="text-3xl font-bold">{stats.activeEmployees + stats.inactiveEmployees}</div>
             </div>
             <div className={`rounded-lg shadow-md p-6 flex flex-col items-center ${isDarkMode ? "bg-slate-900 text-blue-300" : "bg-white text-blue-700"}`}>
               <span className="text-4xl mb-2">👨‍💼</span>
-              <div className="text-lg font-semibold mb-1">Active Employees</div>
+              <div className="text-lg font-semibold mb-1">{t('dashboard.activeEmployees')}</div>
               <div className="text-3xl font-bold">{stats.activeEmployees}</div>
             </div>
             <div className={`rounded-lg shadow-md p-6 flex flex-col items-center ${isDarkMode ? "bg-slate-900 text-red-300" : "bg-white text-red-600"}`}>
               <span className="text-4xl mb-2">🛑</span>
-              <div className="text-lg font-semibold mb-1">Inactive Employees</div>
+              <div className="text-lg font-semibold mb-1">{t('dashboard.inactiveEmployees')}</div>
               <div className="text-3xl font-bold">{stats.inactiveEmployees}</div>
             </div>
             <div className={`rounded-lg shadow-md p-6 flex flex-col items-center ${isDarkMode ? "bg-slate-900 text-amber-300" : "bg-white text-amber-600"}`}>
               <span className="text-4xl mb-2">💸</span>
-              <div className="text-lg font-semibold mb-1">Total Expenses</div>
+              <div className="text-lg font-semibold mb-1">{t('navigation.expenses')}</div>
               <div className="text-3xl font-bold">₹{totalExpenses.toLocaleString()}</div>
             </div>
           </div>
@@ -684,9 +702,11 @@ const Dashboard = () => {
             <Route path="/" element={<Home />} />
             <Route path="addEmp" element={<AddEmp />} />
             <Route path="attendance" element={<Attendance />} />
+            <Route path="set-salary" element={<SetSalary />} />
             <Route path="salarysheet" element={<SalarySheet />} />
             <Route path="salaryslip" element={<SalarySlip />} />
             <Route path="viewAtt" element={<ViewAttendance />} />
+            <Route path="check-images" element={<CheckImages />} />
             <Route path="profileform" element={<ProfileForm />} />
             <Route path="certificates" element={<Certificates />} />
             <Route path="reminders" element={<Reminders />} />
@@ -697,6 +717,7 @@ const Dashboard = () => {
             <Route path="track-employee" element={<TrackEmployee />} />
             <Route path="add-openings" element={<AddOpenings />} />
             <Route path="resume" element={<Resume />} />
+            <Route path="emergency-message" element={<EmergencyMessage />} />
             <Route path="*" element={<DashoBoardRouter />} />
           </Routes>
         </div>
@@ -707,22 +728,22 @@ const Dashboard = () => {
           <div className="bg-slate-800 rounded-lg shadow-xl border border-orange-800 w-full max-w-md p-6 z-10 animate-scaleIn transform transition-all duration-300">
             <div className="flex items-center mb-4 text-orange-500">
               <FaExclamationTriangle className="text-2xl mr-3 animate-pulse" />
-              <h3 className="text-xl font-semibold">Logout Confirmation</h3>
+              <h3 className="text-xl font-semibold">{t('messages.confirmLogout')}</h3>
               <button onClick={cancelLogout} className="ml-auto p-1 hover:bg-slate-700 rounded-full transition-colors duration-200">
                 <FaTimes className="text-gray-400 hover:text-white" />
               </button>
             </div>
             <div className="mb-6">
-              <p className="mb-2 text-gray-200">Are you sure you want to logout?</p>
-              <p className="text-gray-400 text-sm">Your session will be ended and you'll need to log in again to access the dashboard.</p>
+              <p className="mb-2 text-gray-200">{t('messages.confirmLogout')}</p>
+              <p className="text-gray-400 text-sm">{t('messages.sessionExpired')}</p>
             </div>
             <div className="flex space-x-3 justify-end">
               <button onClick={cancelLogout} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={confirmLogout} className="px-4 py-2 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white rounded-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2">
                 <FaSignOutAlt className="transform group-hover:translate-x-[-2px] transition-transform duration-300" />
-                <span>Logout</span>
+                <span>{t('auth.logout')}</span>
               </button>
             </div>
           </div>

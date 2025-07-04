@@ -65,9 +65,16 @@ class FirebaseService {
         // Continue anyway, might already be registered
       }
 
-      const token = await getToken(messaging, {
-        vapidKey: "BE3cALPMvuobCzLQeyEwvAVBTDXqt_FOBCUn6pckYGIAwbqW4mIEA_zBxXnrVHZbkG-0zbU5JZxoq4phFKAMwdc"
-      });
+      // Try to get token with VAPID key first, fallback without if needed
+      let token;
+      try {
+        token = await getToken(messaging, {
+          vapidKey: "BE3cALPMvuobCzLQeyEwvAVBTDXqt_FOBCUn6pckYGIAwbqW4mIEA_zBxXnrVHZbkG-0zbU5JZxoq4phFKAMwdc"
+        });
+      } catch (vapidError) {
+        console.log('⚠️ VAPID key failed, trying without VAPID key:', vapidError);
+        token = await getToken(messaging);
+      }
 
       if (token) {
         console.log('✅ FCM Token generated successfully');
@@ -89,7 +96,7 @@ class FirebaseService {
       const token = await this.generateToken();
       console.log('🔄 FCM token generated, registering with backend...');
 
-      const response = await fetch('http://localhost:8282/api/fcm/register-token', {
+      const response = await fetch('https://api.managifyhr.com/api/fcm/register-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,6 +137,12 @@ class FirebaseService {
       });
       window.dispatchEvent(event);
 
+      // Also dispatch a more specific event for notification bell
+      const bellEvent = new CustomEvent('notificationBellUpdate', {
+        detail: { type: 'new_notification', payload }
+      });
+      window.dispatchEvent(bellEvent);
+
       // Show toast notification instead of alert
       if (payload.notification) {
         console.log(`📢 ${payload.notification.title}: ${payload.notification.body}`);
@@ -142,6 +155,12 @@ class FirebaseService {
           });
         }
       }
+
+      // Force a global refresh of notification counts
+      setTimeout(() => {
+        const refreshEvent = new CustomEvent('forceNotificationRefresh');
+        window.dispatchEvent(refreshEvent);
+      }, 1000);
     });
 
     console.log('✅ Firebase foreground message listener setup complete');
@@ -149,7 +168,7 @@ class FirebaseService {
 
   async getNotifications(userType, userId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${userType}/${userId}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +191,7 @@ class FirebaseService {
   // Get unread notification count
   async getUnreadCount(userType, userId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${userType}/${userId}/unread-count`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}/unread-count`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -195,7 +214,7 @@ class FirebaseService {
   // Mark notification as read
   async markAsRead(notificationId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${notificationId}/mark-read`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${notificationId}/mark-read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -215,10 +234,34 @@ class FirebaseService {
     }
   }
 
+  // Mark all notifications as read
+  async markAllAsRead(userType, userId) {
+    try {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}/mark-all-read`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ All notifications marked as read:', result);
+        return result;
+      } else {
+        console.error('❌ Failed to mark all notifications as read:', response.statusText);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error marking all notifications as read:', error);
+      return null;
+    }
+  }
+
   // Update notification preferences
   async updateNotificationPreferences(userType, userId, enabled) {
     try {
-      const response = await fetch('http://localhost:8282/api/fcm/update-preferences', {
+      const response = await fetch('https://api.managifyhr.com/api/fcm/update-preferences', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

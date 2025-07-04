@@ -6,13 +6,15 @@ import "./animations.css";
 import { FaUsers, FaUserCheck, FaUserMinus, FaBriefcase, FaArrowUp, FaArrowDown, FaUserCog } from "react-icons/fa";
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Home = () => {
   const { emp, isDarkMode } = useApp();
+  const { t } = useTranslation();
 
-  // Defensive: fallback to empty array if emp is undefined
+  // Defensive: fallback to empty array if emp is undefined 
   const employees = Array.isArray(emp) ? emp : [];
 
   // Calculate stats based on context data with robust status normalization
@@ -145,19 +147,19 @@ const Home = () => {
 
       {/* Employee Status and Role Distribution Section */}
       <div className={`${isDarkMode ? 'bg-slate-800' : 'bg-white'} p-6 rounded-lg shadow-lg mt-6`}>
-        <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-6`}>Employee Overview</h3>
+        <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'} mb-6`}>{t('dashboard.employeeOverview')}</h3>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Employee Status Pie Chart */}
           <div>
-            <h4 className={`text-lg font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-3`}>Status Distribution</h4>
+            <h4 className={`text-lg font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-3`}>{t('dashboard.statusDistribution')}</h4>
             <div className="h-72">
               <Pie data={employeeStatusData} options={chartOptions} />
             </div>
             <div className="mt-4 flex justify-center space-x-8">
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Active ({stats.activeEmployees}) <span className="ml-1 font-medium">{activePercentage}%</span></span>
+                <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('common.active')} ({stats.activeEmployees}) <span className="ml-1 font-medium">{activePercentage}%</span></span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
@@ -211,21 +213,4 @@ const Home = () => {
   );
 };
 
-
-      
-               
-             
-             
-          
-  {/* Main Content Area */}
-  <div style={{ marginLeft: '16rem', flex: 1 }}>
-    <div className="mt-6 flex justify-center">
-      <Link to="/dashboard/track-employee" className="bg-blue-700 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-800 transition-all duration-200">
-        Track Employee
-      </Link>
-    </div>
-    {/* ...rest of the original Home content goes here... */}
-  </div>
-
-
-export default Home; 
+export default Home;

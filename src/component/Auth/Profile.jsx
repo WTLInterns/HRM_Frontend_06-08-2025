@@ -4,9 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const { user, logoutUser, fetchUserProfile } = useApp();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   useEffect(() => {
     fetchUserProfile();
@@ -17,7 +19,7 @@ const Profile = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-700 to-blue-500 page-container">
         <div className="text-white text-lg animate-pulse">
-          Please log in to view your profile.
+          {t('auth.login')} {t('navigation.viewProfile')}.
         </div>
       </div>
     );
@@ -47,7 +49,7 @@ const Profile = () => {
             <div className="p-4 bg-gray-50 rounded-lg shadow-sm transform transition duration-300 hover:translate-y-[-5px] hover:shadow-md">
               <div className="flex items-center mb-3">
                 <MdEmail className="text-indigo-600 text-xl mr-2 animate-float" />
-                <h3 className="text-lg font-medium text-gray-700">Email</h3>
+                <h3 className="text-lg font-medium text-gray-700">{t('common.email')}</h3>
               </div>
               <p className="text-gray-700">{user.email}</p>
             </div>
@@ -55,7 +57,7 @@ const Profile = () => {
             <div className="p-4 bg-gray-50 rounded-lg shadow-sm transform transition duration-300 hover:translate-y-[-5px] hover:shadow-md">
               <div className="flex items-center mb-3">
                 <FaUser className="text-indigo-600 text-xl mr-2 animate-float" />
-                <h3 className="text-lg font-medium text-gray-700">Phone</h3>
+                <h3 className="text-lg font-medium text-gray-700">{t('common.phone')}</h3>
               </div>
               <p className="text-gray-700">{user.phone}</p>
             </div>
@@ -63,7 +65,7 @@ const Profile = () => {
             <div className="p-4 bg-gray-50 rounded-lg shadow-sm transform transition duration-300 hover:translate-y-[-5px] hover:shadow-md">
               <div className="flex items-center mb-3">
                 <HiOutlineUserGroup className="text-indigo-600 text-xl mr-2 animate-float" />
-                <h3 className="text-lg font-medium text-gray-700">Role</h3>
+                <h3 className="text-lg font-medium text-gray-700">{t('labels.role')}</h3>
               </div>
               <p className="text-gray-700">{user.role}</p>
             </div>
