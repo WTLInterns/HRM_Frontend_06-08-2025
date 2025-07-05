@@ -243,7 +243,7 @@ export default function SalaryReport() {
       const apiEndDate = toApiDate(endDate.trim());
       // Using the new API endpoint format
       const response = await axios.get(
-        `https://api.managifyhr.com/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
+        `http://localhost:8282/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -251,7 +251,7 @@ export default function SalaryReport() {
       try {
         // Get employee by name - this should return the full employee entity
         // const empResponse = await axios.get(
-        //   `https://api.managifyhr.com/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
+        //   `http://localhost:8282/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
         // )
         if (empResponse.status === 200) {
           employeeDetails = empResponse.data
@@ -812,7 +812,7 @@ export default function SalaryReport() {
         createCell(margin + sigColumnWidth, yPos, sigColumnWidth, signatureRowHeight, "", 10, "left")
 
         // Left column: Signature image'
-        const signature = `https://api.managifyhr.com/images/profile/${user.signature}`
+        const signature = `http://localhost:8282/images/profile/${user.signature}`
         try {
           doc.addImage(
             signature,
@@ -836,7 +836,7 @@ export default function SalaryReport() {
         }
 
         // Right column: Company logo
-        const logo = `https://api.managifyhr.com/images/profile/${user.companylogo}`
+        const logo = `http://localhost:8282/images/profile/${user.companylogo}`
         try {
           doc.addImage(
            logo,
@@ -937,7 +937,7 @@ export default function SalaryReport() {
       if (value.trim().length > 0 && user && user.id) {
         try {
           // Fetch employee list from backend for autocomplete (like ViewAttendance)
-          const res = await axios.get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`);
+          const res = await axios.get(`http://localhost:8282/api/employee/${user.id}/employee/all`);
           const employeeList = res.data || [];
           const query = value.trim().toLowerCase();
           const list = employeeList.map(emp => ({

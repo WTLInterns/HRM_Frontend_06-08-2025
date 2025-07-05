@@ -52,7 +52,7 @@ export default function Attendance() {
       
       // Fetch employee list for autocomplete
       axios
-        .get(`https://api.managifyhr.com/api/employee/${subAdminId}/employee/all`)
+        .get(`http://localhost:8282/api/employee/${subAdminId}/employee/all`)
         .then(res => {
           console.log("Loaded employee list:", res.data.length, "employees");
           setEmployeeList(res.data);
@@ -123,7 +123,7 @@ export default function Attendance() {
   const checkExistingAttendance = async (empId, date) => {
     try {
       console.log(`Checking attendance for employee ID ${empId} on ${date}`);
-      const response = await axios.get(`https://api.managifyhr.com/api/employee/bulk/${empId}/${date}`);
+      const response = await axios.get(`http://localhost:8282/api/employee/bulk/${empId}/${date}`);
       console.log('Existing attendance response:', response.data);
       return response.data;
     } catch (error) {
@@ -184,7 +184,7 @@ export default function Attendance() {
   // Handle status selection with reason (for both normal and modal)
   const handleStatusWithReason = async (status, reason) => {
     if (!employeeName || employeeName.trim() === '' || !selectedEmpId) {
-      toast.error('Please enter employee name first', {
+      toast.error(t('attendanceManagement.enterEmployeeNameFirst'), {
         duration: 3000,
         style: {
           background: '#FF5555',
@@ -229,8 +229,8 @@ export default function Attendance() {
       
       let response;
       let existingStatus = '';
-      let updateUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
-      let addUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
+      let updateUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
       
       if (existingAttendance && existingAttendance.length > 0) {
         // Attendance exists, use PUT to update
@@ -411,8 +411,8 @@ export default function Attendance() {
   // Validate that employeeName and at least one date are provided.
   const validateForm = () => {
     if (!employeeName || employeeName.trim() === "") {
-      setError("Please enter an employee name.");
-      toast.error("Please enter employee name first", {
+      setError(t('attendanceManagement.enterEmployeeFullName'));
+      toast.error(t('attendanceManagement.enterEmployeeNameFirst'), {
         duration: 4000,
         style: {
           background: '#FF5555',
@@ -426,8 +426,8 @@ export default function Attendance() {
       return false;
     }
     if (selectedDates.length === 0) {
-      setError("Please select at least one date.");
-      toast.error("Please select at least one date", {
+      setError(t('attendanceManagement.selectAtLeastOneDate'));
+      toast.error(t('attendanceManagement.selectAtLeastOneDate'), {
         duration: 4000,
         style: {
           background: '#FF5555',
@@ -450,7 +450,7 @@ export default function Attendance() {
     // Ensure all Absent/Leave/Paid Leave records have a reason
     for (const rec of attendanceRecords) {
       if (["Absent", "Leave", "Paid Leave"].includes(rec.status) && (!rec.reason || rec.reason.trim() === "")) {
-        setError(`Reason required for ${rec.status} on ${formatDate(rec.date)}`);
+        setError(t('attendanceManagement.reasonRequired', { status: rec.status, date: formatDate(rec.date) }));
         toast.error(`Reason required for ${rec.status} on ${formatDate(rec.date)}`);
         return;
       }
@@ -493,7 +493,7 @@ export default function Attendance() {
         promises.push(
           axios
             .post(
-              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
+              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
               newRecords,
               config
             )
@@ -508,7 +508,7 @@ export default function Attendance() {
         promises.push(
           axios
             .put(
-              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
+              `http://localhost:8282/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
               updateRecords,
               config
             )
@@ -573,14 +573,14 @@ export default function Attendance() {
       console.error("Error marking attendance:", err);
       if (err.response) {
         if (err.response.status === 403) {
-          setError("Access denied. Please check your login credentials or permissions.");
+          setError(t('attendanceManagement.accessDenied'));
         } else if (err.response.status === 401) {
-          setError("Unauthorized. Please log in again.");
+          setError(t('attendanceManagement.unauthorized'));
         } else {
           setError(err.response.data || `Server error: ${err.response.status}`);
         }
       } else if (err.request) {
-        setError("Network error: Cannot connect to the server. Is the backend running?");
+        setError(t('attendanceManagement.networkError'));
       } else {
         setError(`Error: ${err.message}`);
       }
@@ -637,7 +637,7 @@ export default function Attendance() {
                   className={`w-full p-2 border ${isDarkMode ? 'border-gray-700 bg-slate-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                   value={employeeName}
                   onChange={e => setEmployeeName(e.target.value)}
-                  placeholder="Enter employee name"
+                  placeholder={t('attendanceManagement.employeeNamePlaceholder')}
                   required
                 />
                 {suggestions.length > 0 && (
@@ -726,13 +726,13 @@ export default function Attendance() {
                 <div className={`${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'} rounded-lg p-4`}>
                   <div className="flex justify-between items-center mb-3">
                     <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      Total Selected: {selectedDates.length}
+                      {t('attendanceManagement.totalSelected')} {selectedDates.length}
                     </span>
                     <button
                       onClick={handleCancelAll}
                       className={`text-sm ${isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'}`}
                     >
-                      Clear All
+                      {t('attendanceManagement.clearAll')}
                     </button>
                   </div>
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -778,17 +778,17 @@ export default function Attendance() {
                   } transition duration-200 flex items-center justify-center gap-2`}
                 >
                   {submitting ? (
-                    <>Processing...</>
+                    <>{t('attendanceManagement.submitting')}</>
                   ) : (
                     <>
-                      <FaCheckCircle /> {t('attendance.submitAttendance')}
+                      <FaCheckCircle /> {t('attendanceManagement.submitAttendance')}
                     </>
                   )}
                 </button>
               </div>
             ) : (
               <div className={`text-center p-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                No dates selected
+                {t('attendanceManagement.noDateSelected')}
               </div>
             )}
           </div>
@@ -798,15 +798,15 @@ export default function Attendance() {
     {showReasonModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className={`p-6 rounded-lg shadow-lg w-full max-w-md ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'}`}>
-          <h2 className="text-lg font-bold mb-4">{t('attendance.enterReason')}</h2>
+          <h2 className="text-lg font-bold mb-4">{t('attendanceManagement.enterReason')}</h2>
           <div className="mb-4">
-            <label className="block mb-2 font-medium">{t('attendance.reasonFor')} {statusOptions.find(s => s.key === pendingStatus)?.label || pendingStatus}:</label>
+            <label className="block mb-2 font-medium">{t('attendanceManagement.reasonFor')} {statusOptions.find(s => s.key === pendingStatus)?.label || pendingStatus}:</label>
             <textarea
               className={`w-full p-2 rounded border ${isDarkMode ? 'bg-slate-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'}`}
               rows={3}
               value={reasonInput}
               onChange={e => setReasonInput(e.target.value)}
-              placeholder={t('attendance.enterReasonPlaceholder')}
+              placeholder={t('attendanceManagement.enterReasonPlaceholder')}
               autoFocus
             />
             {reasonError && <div className="text-red-500 text-sm mt-1">{reasonError}</div>}
@@ -822,7 +822,7 @@ export default function Attendance() {
               className={`px-4 py-2 rounded ${isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-400 text-white'}`}
               onClick={async () => {
                 if (!reasonInput.trim()) {
-                  setReasonError("Reason is required.");
+                  setReasonError(t('attendanceManagement.reasonIsRequired'));
                   return;
                 }
                 setReasonError("");

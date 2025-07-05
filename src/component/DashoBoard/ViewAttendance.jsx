@@ -35,7 +35,7 @@ export default function ViewAttendance() {
       const user = JSON.parse(userData);
       setLoggedUser(user);
       axios
-        .get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`)
+        .get(`http://localhost:8282/api/employee/${user.id}/employee/all`)
         .then(res => setEmployeeList(res.data))
         .catch(err => console.error("Failed to load employee list:", err));
     }
@@ -76,11 +76,11 @@ export default function ViewAttendance() {
 
   const fetchAttendance = async () => {
     if (!empFullName.trim()) {
-      setError("Please enter an Employee Full Name");
+      setError(t('attendanceManagement.enterEmployeeFullName'));
       return;
     }
     if (!loggedUser?.id) {
-      setError("No Subadmin found. Please log in again.");
+      setError(t('attendanceManagement.noSubadminFound'));
       return;
     }
     setLoading(true);
@@ -88,14 +88,14 @@ export default function ViewAttendance() {
     try {
       const subadminId = loggedUser.id;
       const res = await axios.get(
-        `https://api.managifyhr.com/api/employee/${subadminId}/${selectedEmpId}/attendance`
+        `http://localhost:8282/api/employee/${subadminId}/${selectedEmpId}/attendance`
       );
       setAttendanceData(res.data);
       setEmpName(res.data[0]?.employee?.firstName || "Employee");
     } catch (err) {
       console.error("Error fetching attendance:", err);
-      toast.error("Failed to load attendance data");
-      setError(`Error fetching attendance data: ${err.message}`);
+      toast.error(t('attendanceManagement.failedToLoadAttendanceData'));
+      setError(`${t('attendanceManagement.errorFetchingAttendance')} ${err.message}`);
       setAttendanceData([]);
     } finally {
       setLoading(false);
@@ -188,7 +188,7 @@ const tileContent = ({ date, view }) => {
           <div key={status} className={`p-3 rounded-lg border ${statusColors[status] || 'border-gray-700'}`}>          
             <div className="font-medium text-lg">{status}</div>
             <div className="text-2xl font-bold">{cnt}</div>
-            <div className="text-xs text-gray-400">days</div>
+            <div className="text-xs text-gray-400">{t('attendanceManagement.days')}</div>
           </div>
         ))}
       </div>
@@ -209,7 +209,7 @@ const tileContent = ({ date, view }) => {
               type="text"
               value={empFullName}
               onChange={handleInputChange}
-              placeholder="Enter Employee Full Name"
+              placeholder={t('attendanceManagement.enterEmployeeFullName')}
               className={`w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 ${isDarkMode ? "bg-slate-700 border-gray-700 text-gray-100 placeholder-gray-400" : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"}`}
             />
             <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
@@ -233,28 +233,28 @@ const tileContent = ({ date, view }) => {
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                <span>{t('common.loading')}</span>
+                <span>{t('attendanceManagement.loadingAttendance')}</span>
               </div>
             ) : (
-              <><FaUserCheck /> {t('navigation.viewAttendance')}</>
+              <><FaUserCheck /> {t('attendanceManagement.viewAttendanceTitle')}</>
             )}
           </button>
           {attendanceData.length > 0 && (
             <button
               onClick={clearAttendance}
               className={`px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 ${isDarkMode ? "bg-gray-700 text-white hover:bg-gray-600" : "bg-gray-300 text-gray-900 hover:bg-gray-200"}`}
-            ><FaTimes /> Clear</button>
+            ><FaTimes /> {t('attendanceManagement.clear')}</button>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className={`text-center py-8 ${isDarkMode ? "text-gray-300" : "text-gray-500"}`}>Loading...</div>
+        <div className={`text-center py-8 ${isDarkMode ? "text-gray-300" : "text-gray-500"}`}>{t('attendanceManagement.loadingAttendance')}</div>
       ) : attendanceData.length > 0 ? (
         <div className={`${isDarkMode ? "bg-slate-800 border-blue-900" : "bg-blue-50 border-blue-200"} p-6 rounded-lg shadow-lg border animate-slideIn`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-2xl font-semibold flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
-              <FaCalendarAlt className={isDarkMode ? "text-blue-400" : "text-blue-600"} /> Attendance for {empName}
+              <FaCalendarAlt className={isDarkMode ? "text-blue-400" : "text-blue-600"} /> {t('attendanceManagement.attendanceFor', { name: empName })}
             </h2>
             {attendanceData.length > 0 && (
               <button
@@ -266,7 +266,7 @@ const tileContent = ({ date, view }) => {
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all duration-200 ${isDarkMode ? 'bg-blue-700 text-white hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
               >
-                <FaDownload /> Download
+                <FaDownload /> {t('attendanceManagement.exportToExcel')}
               </button>
             )}
           </div>
@@ -285,19 +285,19 @@ const tileContent = ({ date, view }) => {
               <div className={`rounded-lg shadow-lg border w-full max-w-xl p-6 ${isDarkMode ? "bg-slate-800 border-blue-900 text-gray-100" : "bg-white border-blue-300 text-gray-900"}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className={`text-lg font-semibold flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
-                    <FaCalendarAlt className={`${isDarkMode ? "text-blue-400" : "text-blue-600 animate-pulse"}`} /> Attendance Details for {formatDate(selectedDate)}
+                    <FaCalendarAlt className={`${isDarkMode ? "text-blue-400" : "text-blue-600 animate-pulse"}`} /> {t('attendanceManagement.attendanceDetails', { date: formatDate(selectedDate) })}
                   </h3>
                   <button onClick={() => setShowDetailModal(false)} className="text-xl font-bold hover:text-red-500 transition-colors duration-200">&times;</button>
                 </div>
                 <div className={`p-4 rounded-lg border ${statusColors[tooltipContent.status]}`}>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>Status</p>
+                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>{t('attendanceManagement.status')}</p>
                       <p className="font-semibold text-lg">{tooltipContent.status}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>Reason</p>
-                      <p className="font-semibold text-lg">{tooltipContent.reason || "N/A"}</p>
+                      <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}>{t('attendanceManagement.reason')}</p>
+                      <p className="font-semibold text-lg">{tooltipContent.reason || t('attendanceManagement.noReason')}</p>
                     </div>
                   </div>
                 </div>

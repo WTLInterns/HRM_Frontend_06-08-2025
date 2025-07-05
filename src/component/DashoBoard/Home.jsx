@@ -163,21 +163,21 @@ const Home = () => {
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Inactive ({stats.inactiveEmployees})<span className="ml-1 font-medium">{inactivePercentage}%</span></span>
+                <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('dashboardExtended.tableHeaders.inactive')} ({stats.inactiveEmployees})<span className="ml-1 font-medium">{inactivePercentage}%</span></span>
               </div>
             </div>
           </div>
           {/* Employee Role Distribution */}
           <div>
-            <h4 className={`text-lg font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-3`}>Role Distribution</h4>
+            <h4 className={`text-lg font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-3`}>{t('dashboard.roleDistribution')}</h4>
             <div className={`${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'} rounded-lg p-4 h-72 overflow-auto`}>
               <table className="w-full">
                 <thead>
                   <tr className={`border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
-                    <th className={`text-left py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Role</th>
-                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total</th>
-                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Active</th>
-                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Inactive</th>
+                    <th className={`text-left py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('dashboardExtended.tableHeaders.role')}</th>
+                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('dashboardExtended.tableHeaders.total')}</th>
+                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('dashboardExtended.tableHeaders.active')}</th>
+                    <th className={`text-center py-2 px-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('dashboardExtended.tableHeaders.inactive')}</th>
                   </tr>
                 </thead>
                 <tbody>

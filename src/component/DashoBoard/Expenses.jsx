@@ -37,7 +37,7 @@ const style = (isDarkMode) => ({
   borderRadius: 2,
 });
 
-const API_BASE = `https://api.managifyhr.com/api/expenses`;
+const API_BASE = `http://localhost:8282/api/expenses`;
 
 const initialForm = {
   expenseId: "",
@@ -370,9 +370,9 @@ export default function Expenses() {
                 {editId && form.billImage && !form.billImageFile && (
                   <div className="mt-3">
                     <div className="text-[#bfc9db] text-xs mb-1">Actual Bill Image:</div>
-                    <a href={`https://api.managifyhr.com/images/profile/${form.billImage}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`http://localhost:8282/images/profile/${form.billImage}`} target="_blank" rel="noopener noreferrer">
                       <img
-                        src={`https://api.managifyhr.com/images/profile/${form.billImage}`}
+                        src={`http://localhost:8282/images/profile/${form.billImage}`}
                         alt="Bill"
                         className="border border-[#223054] rounded-lg max-h-32 bg-[#17233e] cursor-pointer hover:opacity-80 transition"
                         style={{ marginTop: 10 }}

@@ -24,7 +24,7 @@ const Dashboard = () => {
         setLoading(true);
         
         // Fetch companies directly from the API instead of localStorage
-        const response = await fetch('https://api.managifyhr.com/api/subadmin/all');
+        const response = await fetch('http://localhost:8282/api/subadmin/all');
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);

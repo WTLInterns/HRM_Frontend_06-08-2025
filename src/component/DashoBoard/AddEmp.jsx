@@ -129,12 +129,12 @@ export default function AddEmp() {
       } catch (error) {
         console.error("Error fetching employees:", error);
         if (error.response && error.response.status === 404) {
-          toast.error("API endpoint not found (404). Please contact support.");
+          toast.error(t('employeeManagement.errors.apiNotFound'));
         } else if (error.response && error.response.status === 401) {
           console.log("User not authenticated, skipping error toast");
         } else {
           toast.error(
-            "Failed to fetch employees: " +
+            t('employeeManagement.errors.failedToFetch') + " " +
               (error.response?.data?.message || error.message)
           );
         }
@@ -388,10 +388,10 @@ export default function AddEmp() {
       window.dispatchEvent(new Event("employeesUpdated"));
     } catch (err) {
       if (err.response && err.response.status === 404) {
-        toast.error("API endpoint not found (404). Please contact support.");
+        toast.error(t('employeeManagement.errors.apiNotFound'));
       } else {
         toast.error(
-          "Failed to register employee: " +
+          t('employeeManagement.errors.failedToRegister') + " " +
             (err.response?.data?.message || err.message)
         );
       }
@@ -403,7 +403,7 @@ export default function AddEmp() {
   const handleUpdateEmp = async (e) => {
     e.preventDefault();
     if (!subadminId) {
-      toast.error("Subadmin session expired. Please login again.");
+      toast.error(t('employeeManagement.errors.sessionExpired'));
       return;
     }
 
@@ -527,7 +527,7 @@ const confirmedDeleteEmp = async (empId) => {
     // Get the employee to delete
     const employee = employees.find((e) => e.empId === empId);
     if (!employee) {
-      toast.error("Employee not found");
+      toast.error(t('employeeManagement.errors.employeeNotFound'));
       return;
     }
 
@@ -576,7 +576,7 @@ const confirmedSendLoginDetails = async (empId) => {
   try {
     const employee = employees.find((e) => e.empId === empId);
     if (!employee) {
-      toast.error("Employee not found");
+      toast.error(t('employeeManagement.errors.employeeNotFound'));
       setSendEmailLoading(false);
       return;
     }
@@ -644,7 +644,7 @@ const handleEditEmp = (employee) => {
 
     // Profile image - using the correct field name from the backend entity (empimg)
     if (employee.empimg) {
-      const profileImageUrl = `https://api.managifyhr.com/images/profile/${employee.empimg}`;
+      const profileImageUrl = `http://localhost:8282/images/profile/${employee.empimg}`;
       console.log("Setting profile image URL:", profileImageUrl);
       setEmpImgPreview(profileImageUrl);
 
@@ -659,7 +659,7 @@ const handleEditEmp = (employee) => {
 
     // Aadhar image - using the correct field name from the backend entity (adharimg)
     if (employee.adharimg) {
-      const aadharImageUrl = `https://api.managifyhr.com/images/profile/${employee.adharimg}`;
+      const aadharImageUrl = `http://localhost:8282/images/profile/${employee.adharimg}`;
       console.log("Setting aadhar image URL:", aadharImageUrl);
       setAdharImgPreview(aadharImageUrl);
 
@@ -674,7 +674,7 @@ const handleEditEmp = (employee) => {
 
     // PAN image - using the correct field name from the backend entity (panimg)
     if (employee.panimg) {
-      const panImageUrl = `https://api.managifyhr.com/images/profile/${employee.panimg}`;
+      const panImageUrl = `http://localhost:8282/images/profile/${employee.panimg}`;
       console.log("Setting PAN image URL:", panImageUrl);
       setPanImgPreview(panImageUrl);
 
@@ -728,7 +728,7 @@ const handleEditEmp = (employee) => {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder={t('employeeManagement.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full p-2 ${
@@ -765,9 +765,9 @@ const handleEditEmp = (employee) => {
                 : "bg-white text-gray-600"
             } rounded-lg shadow-md text-center`}
           >
-            <p className="mb-2">{t('messages.noDataAvailable')}</p>
+            <p className="mb-2">{t('employeeManagement.noDataAvailable')}</p>
             <p className="text-sm">
-              {t('messages.noDataAvailable')}
+              {t('employeeManagement.noDataDescription')}
             </p>
           </div>
         ) : (
@@ -780,13 +780,13 @@ const handleEditEmp = (employee) => {
                     : "bg-gray-100 text-gray-700"
                 }`}
               >
-                <th className="px-3 py-2 text-left">EMP ID</th>
-                <th className="px-3 py-2 text-left">NAME</th>
-                <th className="px-3 py-2 text-left">EMAIL</th>
-                {/* <th className="px-3 py-2 text-left">PHONE</th> */}
-                <th className="px-3 py-2 text-left">JOB ROLE</th>
-                <th className="px-3 py-2 text-left">STATUS</th>
-                <th className="px-3 py-2 text-center">ACTIONS</th>
+                <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.empId')}</th>
+                <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.name')}</th>
+                <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.email')}</th>
+                {/* <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.phone')}</th> */}
+                <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.jobRole')}</th>
+                <th className="px-3 py-2 text-left">{t('employeeManagement.tableHeaders.status')}</th>
+                <th className="px-3 py-2 text-center">{t('employeeManagement.tableHeaders.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -886,9 +886,9 @@ const handleEditEmp = (employee) => {
                 : "bg-white text-gray-600"
             } rounded-lg shadow-md text-center`}
           >
-            <p className="mb-2">No employees found.</p>
+            <p className="mb-2">{t('employeeManagement.noDataAvailable')}</p>
             <p className="text-sm">
-              Click the "Add Employee" button to add your first employee.
+              {t('employeeManagement.noDataDescription')}
             </p>
           </div>
         ) : (
@@ -1834,7 +1834,7 @@ const handleEditEmp = (employee) => {
                       isDarkMode ? "text-blue-400" : "text-blue-600"
                     }`}
                   >
-                    Update Employee Information
+                    {t('addEmployee.updateTitle')}
                   </h3>
                   <button
                     onClick={() => setUpdateModal(false)}
@@ -1856,13 +1856,13 @@ const handleEditEmp = (employee) => {
                           isDarkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       >
-                        First Name:
+                        {t('addEmployee.fields.firstName')}:
                       </label>
                       <input
                         id="firstNameUpd"
                         value={firstName}
                         onChange={(e) => setFname(e.target.value)}
-                        placeholder="First name"
+                        placeholder={t('addEmployee.placeholders.firstName')}
                         className={`block w-full px-4 py-2 ${
                           isDarkMode
                             ? "bg-slate-700 border-slate-600 text-white placeholder-gray-400"
@@ -1878,13 +1878,13 @@ const handleEditEmp = (employee) => {
                           isDarkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       >
-                        Last Name:
+                        {t('addEmployee.fields.lastName')}:
                       </label>
                       <input
                         id="lastNameUpd"
                         value={lastName}
                         onChange={(e) => setLname(e.target.value)}
-                        placeholder="Last name"
+                        placeholder={t('addEmployee.placeholders.lastName')}
                         className={`block w-full px-4 py-2 ${
                           isDarkMode
                             ? "bg-slate-700 border-slate-600 text-white placeholder-gray-400"
@@ -2560,16 +2560,16 @@ const handleEditEmp = (employee) => {
           open={confirmDialog.open}
           title={
             confirmDialog.type === 'delete'
-              ? 'Confirm Delete'
+              ? t('employeeManagement.confirmDialog.deleteTitle')
               : confirmDialog.type === 'sendEmail'
-              ? 'Send Login Details'
+              ? t('employeeManagement.confirmDialog.emailTitle')
               : ''
           }
           message={
             confirmDialog.type === 'delete'
-              ? 'Are you sure you want to delete this employee? This action cannot be undone.'
+              ? t('employeeManagement.confirmDialog.deleteMessage')
               : confirmDialog.type === 'sendEmail'
-              ? 'Send login details to this employee?'
+              ? t('employeeManagement.confirmDialog.emailMessage')
               : ''
           }
           confirmText={confirmDialog.type === 'delete' ? 'Delete' : 'Send'}
@@ -2594,8 +2594,8 @@ const handleEditEmp = (employee) => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
               </svg>
             </div>
-            <div className="text-lg font-semibold mb-1">Sending details</div>
-            <div className="text-sm text-blue-200">Please wait...</div>
+            <div className="text-lg font-semibold mb-1">{t('employeeManagement.loadingOverlay.sendingDetails')}</div>
+            <div className="text-sm text-blue-200">{t('employeeManagement.loadingOverlay.pleaseWait')}</div>
           </div>
         </div>
       )}

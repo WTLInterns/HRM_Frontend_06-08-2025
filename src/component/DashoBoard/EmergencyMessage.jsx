@@ -6,7 +6,7 @@ import { FaExclamationTriangle, FaPaperPlane, FaUsers } from "react-icons/fa";
 import { MdEmergency } from "react-icons/md";
 import firebaseService from "../../services/firebaseService";
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8282/api";
 
 const EmergencyMessage = () => {
   const { isDarkMode } = useApp();
@@ -45,13 +45,13 @@ const EmergencyMessage = () => {
     e.preventDefault();
 
     if (!message.trim()) {
-      toast.error("Please enter an emergency message");
+      toast.error(t('emergencyMessage.errors.emptyMessage'));
       return;
     }
 
     const subadminId = getSubadminId();
     if (!subadminId) {
-      toast.error("Unable to identify user. Please log in again.");
+      toast.error(t('emergencyMessage.errors.userNotFound'));
       return;
     }
 
@@ -78,15 +78,15 @@ const EmergencyMessage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        toast.success(`Emergency message sent to ${result.employeeCount} employees successfully!`);
+        toast.success(t('emergencyMessage.success.messageSent', { count: result.employeeCount }));
         setMessage("");
       } else {
         const errorText = await response.text();
-        toast.error(`Failed to send message: ${errorText}`);
+        toast.error(`${t('emergencyMessage.errors.sendFailedWithMessage')} ${errorText}`);
       }
     } catch (error) {
       console.error('Error sending emergency message:', error);
-      toast.error("Failed to send emergency message. Please check your connection.");
+      toast.error(t('emergencyMessage.errors.sendFailed'));
     } finally {
       setLoading(false);
     }
@@ -103,10 +103,10 @@ const EmergencyMessage = () => {
         </div>
         <div>
           <h2 className="text-3xl font-bold text-red-600 dark:text-red-400">
-            Emergency Message
+            {t('emergencyMessage.title')}
           </h2>
           <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Send urgent notifications to all employees instantly
+            {t('emergencyMessage.subtitle')}
           </p>
         </div>
       </div>
@@ -117,11 +117,10 @@ const EmergencyMessage = () => {
           <FaExclamationTriangle className="text-yellow-600 dark:text-yellow-400 mt-1 flex-shrink-0" />
           <div>
             <h3 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
-              Important Notice
+              {t('emergencyMessage.importantNotice')}
             </h3>
             <p className="text-sm text-yellow-700 dark:text-yellow-400">
-              This feature sends immediate notifications to all employees under your management. 
-              Use only for genuine emergencies or critical company announcements.
+              {t('emergencyMessage.warningText')}
             </p>
           </div>
         </div>
@@ -131,12 +130,12 @@ const EmergencyMessage = () => {
       <form onSubmit={handleSendMessage} className="space-y-6">
         <div>
           <label className="block text-sm font-medium mb-2">
-            Emergency Message
+            {t('emergencyMessage.messageLabel')}
           </label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Enter your emergency message here... (e.g., 'Urgent: Office evacuation required due to fire alarm. Please exit immediately and gather at the parking lot.')"
+            placeholder={t('emergencyMessage.messagePlaceholder')}
             rows={6}
             className={`w-full p-4 rounded-lg border resize-none focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
               isDarkMode 
@@ -147,11 +146,11 @@ const EmergencyMessage = () => {
           />
           <div className="flex justify-between items-center mt-2">
             <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              {message.length}/500 characters
+              {message.length}/500 {t('emergencyMessage.characterCount')}
             </span>
             <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
               <FaUsers />
-              <span>Will be sent to all employees</span>
+              <span>{t('emergencyMessage.willBeSentTo')}</span>
             </div>
           </div>
         </div>
@@ -170,12 +169,12 @@ const EmergencyMessage = () => {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Sending...</span>
+                <span>{t('emergencyMessage.sending')}</span>
               </>
             ) : (
               <>
                 <FaPaperPlane />
-                <span>Send Emergency Message</span>
+                <span>{t('emergencyMessage.sendButton')}</span>
               </>
             )}
           </button>
@@ -189,24 +188,24 @@ const EmergencyMessage = () => {
           : 'bg-gray-50 border-gray-200'
       }`}>
         <h3 className="font-semibold mb-3 text-blue-600 dark:text-blue-400">
-          Usage Guidelines
+          {t('emergencyMessage.usageGuidelines')}
         </h3>
         <ul className={`space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-1">•</span>
-            <span>Use for genuine emergencies (fire, natural disasters, security threats)</span>
+            <span>{t('emergencyMessage.guidelines.emergencies')}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-1">•</span>
-            <span>Critical company announcements (office closure, urgent meetings)</span>
+            <span>{t('emergencyMessage.guidelines.announcements')}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-1">•</span>
-            <span>Keep messages clear, concise, and actionable</span>
+            <span>{t('emergencyMessage.guidelines.clarity')}</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-red-500 mt-1">•</span>
-            <span>Avoid using for routine communications or non-urgent matters</span>
+            <span>{t('emergencyMessage.guidelines.avoid')}</span>
           </li>
         </ul>
       </div>

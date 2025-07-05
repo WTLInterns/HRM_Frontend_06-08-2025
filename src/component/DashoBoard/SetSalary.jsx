@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { FaCalculator, FaSave, FaPercent, FaRupeeSign } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8282/api";
 
 const SetSalary = () => {
   const { isDarkMode } = useApp();
@@ -42,7 +42,7 @@ const SetSalary = () => {
   const fetchSalaryConfiguration = async () => {
     const subadminId = getSubadminId();
     if (!subadminId) {
-      toast.error("Unable to identify user. Please log in again.");
+      toast.error(t('setSalary.errors.userNotFound'));
       return;
     }
 
@@ -56,7 +56,7 @@ const SetSalary = () => {
       }
     } catch (error) {
       console.error('Error fetching salary configuration:', error);
-      toast.error("Failed to load salary configuration");
+      toast.error(t('setSalary.errors.loadFailed'));
     } finally {
       setLoadingConfig(false);
     }
@@ -96,20 +96,20 @@ const SetSalary = () => {
 
     const subadminId = getSubadminId();
     if (!subadminId) {
-      toast.error("Unable to identify user. Please log in again.");
+      toast.error(t('setSalary.errors.userNotFound'));
       return;
     }
 
     // Validate percentages
     if (config.basicPercentage < 0 || config.basicPercentage > 100) {
-      toast.error("Basic percentage must be between 0 and 100");
+      toast.error(t('setSalary.errors.basicPercentageRange'));
       return;
     }
 
     // Check if total allowances exceed 100%
     const totalAllowances = config.hraPercentage + config.daPercentage + config.specialAllowancePercentage;
     if (totalAllowances > 100) {
-      toast.error('Cannot save configuration! Total allowances exceed 100%. Please adjust the values.');
+      toast.error(t('setSalary.errors.allowancesExceed'));
       return;
     }
 
@@ -126,7 +126,7 @@ const SetSalary = () => {
 
       if (response.ok) {
         const result = await response.json();
-        const successMessage = result.message || "Configuration saved successfully!";
+        const successMessage = result.message || t('setSalary.success.configurationSaved');
 
         toast.success(successMessage, {
           position: "top-right",
@@ -139,11 +139,11 @@ const SetSalary = () => {
 
       } else {
         const errorText = await response.text();
-        toast.error(`Failed to save configuration: ${errorText}`);
+        toast.error(`${t('setSalary.errors.saveFailedWithMessage')} ${errorText}`);
       }
     } catch (error) {
       console.error('Error saving salary configuration:', error);
-      toast.error("Failed to save salary configuration. Please check your connection.");
+      toast.error(t('setSalary.errors.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -153,7 +153,7 @@ const SetSalary = () => {
     return (
       <div className={`flex justify-center items-center h-64 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        <span className="ml-3">Loading salary configuration...</span>
+        <span className="ml-3">{t('setSalary.loading')}</span>
       </div>
     );
   }
@@ -169,10 +169,10 @@ const SetSalary = () => {
         </div>
         <div>
           <h2 className="text-lg font-bold text-blue-600 dark:text-blue-400">
-            Set Salary Configuration
+            {t('setSalary.title')}
           </h2>
           <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Configure salary calculations for all employees
+            {t('setSalary.subtitle')}
           </p>
         </div>
       </div>
@@ -184,13 +184,13 @@ const SetSalary = () => {
         }`}>
           <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
             <FaCalculator className="text-green-500 text-sm" />
-            Basic Salary Structure (% of CTC)
+            {t('setSalary.basicSalaryStructure')}
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">
-                Basic Salary (% of CTC)
+                {t('setSalary.basicSalaryLabel')}
               </label>
               <div className="relative">
                 <input
@@ -218,13 +218,13 @@ const SetSalary = () => {
         }`}>
           <h3 className="text-base font-semibold mb-2 flex items-center gap-2">
             <FaRupeeSign className="text-green-500 text-sm" />
-            Allowances (% of Basic Salary)
+            {t('setSalary.allowancesTitle')}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">
-                HRA (% of Basic) <span className="text-red-500">*</span>
+                {t('setSalary.hraLabel')} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -246,7 +246,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                DA (% of Basic)
+                {t('setSalary.daLabel')}
               </label>
               <div className="relative">
                 <input
@@ -268,7 +268,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Special Allowance (% of Basic)
+                {t('setSalary.specialAllowanceLabel')}
               </label>
               <div className="relative">
                 <input
@@ -304,13 +304,13 @@ const SetSalary = () => {
                 ? 'text-yellow-700 dark:text-yellow-300'
                 : 'text-blue-700 dark:text-blue-300'
             }`}>
-              <strong>Total Allowances:</strong> {(config.hraPercentage + config.daPercentage + config.specialAllowancePercentage).toFixed(1)}% of Basic Salary
+              <strong>{t('setSalary.totalAllowances')}</strong> {(config.hraPercentage + config.daPercentage + config.specialAllowancePercentage).toFixed(1)}% of Basic Salary
               {(config.hraPercentage + config.daPercentage + config.specialAllowancePercentage) > 100 && (
-                <span className="text-red-600 ml-2 font-semibold">🚫 Exceeds 100%! Please reduce allowances.</span>
+                <span className="text-red-600 ml-2 font-semibold">{t('setSalary.exceedsLimit')}</span>
               )}
               {(config.hraPercentage + config.daPercentage + config.specialAllowancePercentage) > 90 &&
                (config.hraPercentage + config.daPercentage + config.specialAllowancePercentage) <= 100 && (
-                <span className="text-yellow-600 ml-2">⚠️ Close to limit!</span>
+                <span className="text-yellow-600 ml-2">{t('setSalary.closeToLimit')}</span>
               )}
             </p>
           </div>
@@ -322,13 +322,13 @@ const SetSalary = () => {
         }`}>
           <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <FaRupeeSign className="text-blue-500" />
-            Fixed Allowances (Monthly Amount)
+            {t('setSalary.fixedAllowancesTitle')}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Transport Allowance (₹)
+                {t('setSalary.transportAllowanceLabel')}
               </label>
               <input
                 type="number"
@@ -346,7 +346,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Medical Allowance (₹)
+                {t('setSalary.medicalAllowanceLabel')}
               </label>
               <input
                 type="number"
@@ -364,7 +364,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Food Allowance (₹)
+                {t('setSalary.foodAllowanceLabel')}
               </label>
               <input
                 type="number"
@@ -388,13 +388,13 @@ const SetSalary = () => {
         }`}>
           <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <FaPercent className="text-red-500" />
-            Deductions
+            {t('setSalary.deductionsTitle')}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Professional Tax (₹)
+                {t('setSalary.professionalTaxLabel')}
               </label>
               <input
                 type="number"
@@ -412,7 +412,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                TDS (% of Gross)
+                {t('setSalary.tdsLabel')}
               </label>
               <div className="relative">
                 <input
@@ -434,7 +434,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                PF (% of Basic)
+                {t('setSalary.pfLabel')}
               </label>
               <div className="relative">
                 <input
@@ -456,7 +456,7 @@ const SetSalary = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                ESI (% of Gross)
+                {t('setSalary.esiLabel')}
               </label>
               <div className="relative">
                 <input
@@ -492,12 +492,12 @@ const SetSalary = () => {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Saving...</span>
+                <span>{t('setSalary.saving')}</span>
               </>
             ) : (
               <>
                 <FaSave />
-                <span>Save Configuration</span>
+                <span>{t('setSalary.saveButton')}</span>
               </>
             )}
           </button>

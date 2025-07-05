@@ -38,7 +38,7 @@ const Navbar2 = () => {
   return (
     <div className="animate-fadeIn">
     <div className="bg-slate-800 shadow-lg p-4 rounded-lg col-span-3 border border-blue-900">
-      <h2 className="text-xl font-bold text-gray-100">Employees by Job Role</h2>
+      <h2 className="text-xl font-bold text-gray-100">{t('dashboardExtended.employeesByJobRole')}</h2>
       <div className="flex flex-wrap gap-4 mt-4">
         {Object.entries(jobRoleSummary).map(([role, counts], index) => (
           <div

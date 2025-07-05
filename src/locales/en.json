@@ -144,7 +144,18 @@
     "upcomingEvents": "Upcoming Events",
     "pendingTasks": "Pending Tasks",
     "systemStats": "System Stats",
-    "performanceMetrics": "Performance Metrics"
+    "performanceMetrics": "Performance Metrics",
+    "charts": {
+      "employeeDistribution": "Employee Distribution",
+      "salaryDistribution": "Salary Distribution",
+      "monthlyExpenses": "Monthly Expenses",
+      "activeSalary": "Active Salary",
+      "inactiveSalary": "Inactive Salary",
+      "activeEmployees": "Active Employees",
+      "inactiveEmployees": "Inactive Employees",
+      "profit": "Profit",
+      "loss": "Loss"
+    }
   },
   "employee": {
     "employeeId": "Employee ID",
@@ -442,5 +453,333 @@
   },
   "salary": {
     "salaryDetails": "Salary Details"
+  },
+  "setSalary": {
+    "title": "Set Salary Configuration",
+    "subtitle": "Configure salary calculations for all employees",
+    "loading": "Loading salary configuration...",
+    "basicSalaryStructure": "Basic Salary Structure (% of CTC)",
+    "basicSalaryLabel": "Basic Salary (% of CTC)",
+    "allowancesTitle": "Allowances (% of Basic Salary)",
+    "hraLabel": "HRA (% of Basic)",
+    "daLabel": "DA (% of Basic)",
+    "specialAllowanceLabel": "Special Allowance (% of Basic)",
+    "totalAllowances": "Total Allowances:",
+    "exceedsLimit": "🚫 Exceeds 100%! Please reduce allowances.",
+    "closeToLimit": "⚠️ Close to limit!",
+    "fixedAllowancesTitle": "Fixed Allowances (Monthly Amount)",
+    "transportAllowanceLabel": "Transport Allowance (₹)",
+    "medicalAllowanceLabel": "Medical Allowance (₹)",
+    "foodAllowanceLabel": "Food Allowance (₹)",
+    "deductionsTitle": "Deductions",
+    "professionalTaxLabel": "Professional Tax (₹)",
+    "tdsLabel": "TDS (% of Gross)",
+    "pfLabel": "PF (% of Basic)",
+    "esiLabel": "ESI (% of Gross)",
+    "saveButton": "Save Configuration",
+    "saving": "Saving...",
+    "errors": {
+      "userNotFound": "Unable to identify user. Please log in again.",
+      "basicPercentageRange": "Basic percentage must be between 0 and 100",
+      "allowancesExceed": "Total allowances cannot exceed 100% of basic salary",
+      "loadFailed": "Failed to load salary configuration",
+      "saveFailed": "Failed to save salary configuration. Please check your connection.",
+      "saveFailedWithMessage": "Failed to save configuration:"
+    },
+    "success": {
+      "configurationSaved": "Configuration saved successfully!"
+    }
+  },
+  "emergencyMessage": {
+    "title": "Emergency Message",
+    "subtitle": "Send urgent notifications to all employees instantly",
+    "importantNotice": "Important Notice",
+    "warningText": "This feature sends immediate notifications to all employees under your management. Use only for genuine emergencies or critical company announcements.",
+    "messageLabel": "Emergency Message",
+    "messagePlaceholder": "Enter your emergency message here... (e.g., 'Urgent: Office evacuation required due to fire alarm. Please exit immediately and gather at the parking lot.')",
+    "characterCount": "characters",
+    "willBeSentTo": "Will be sent to all employees",
+    "sendButton": "Send Emergency Message",
+    "sending": "Sending...",
+    "usageGuidelines": "Usage Guidelines",
+    "guidelines": {
+      "emergencies": "Use for genuine emergencies (fire, natural disasters, security threats)",
+      "announcements": "Critical company announcements (office closure, urgent meetings)",
+      "clarity": "Keep messages clear, concise, and actionable",
+      "avoid": "Avoid using for routine communications or non-urgent matters"
+    },
+    "errors": {
+      "emptyMessage": "Please enter an emergency message",
+      "userNotFound": "Unable to identify user. Please log in again.",
+      "sendFailed": "Failed to send emergency message. Please check your connection.",
+      "sendFailedWithMessage": "Failed to send message:"
+    },
+    "success": {
+      "messageSent": "Emergency message sent to {count} employees successfully!"
+    }
+  },
+  "employeeManagement": {
+    "title": "Employee Management",
+    "searchPlaceholder": "Search by name or email...",
+    "noDataAvailable": "No employees found",
+    "noDataDescription": "Add employees to get started",
+    "tableHeaders": {
+      "empId": "EMP ID",
+      "name": "NAME",
+      "email": "EMAIL",
+      "phone": "PHONE",
+      "jobRole": "JOB ROLE",
+      "status": "STATUS",
+      "actions": "ACTIONS"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "sendEmail": "Send Login Details",
+      "view": "View"
+    },
+    "confirmDialog": {
+      "deleteTitle": "Confirm Delete",
+      "deleteMessage": "Are you sure you want to delete this employee? This action cannot be undone.",
+      "emailTitle": "Send Login Details",
+      "emailMessage": "Send login details to this employee?",
+      "confirmDelete": "Delete",
+      "confirmSend": "Send",
+      "cancel": "Cancel"
+    },
+    "loadingOverlay": {
+      "sendingDetails": "Sending details",
+      "pleaseWait": "Please wait..."
+    },
+    "errors": {
+      "employeeNotFound": "Employee not found",
+      "sessionExpired": "Subadmin session expired. Please login again.",
+      "packageLimitExceeded": "Package limit exceeded. Cannot add more employees.",
+      "apiNotFound": "API endpoint not found (404). Please contact support.",
+      "failedToRegister": "Failed to register employee:",
+      "failedToUpdate": "Failed to update employee:",
+      "failedToDelete": "Failed to delete employee:",
+      "failedToSendEmail": "Failed to send login details:",
+      "failedToFetch": "Failed to fetch employees:"
+    },
+    "success": {
+      "loginDetailsSent": "Login details sent successfully"
+    }
+  },
+  "addEmployee": {
+    "title": "Add New Employee",
+    "updateTitle": "Update Employee",
+    "personalInfo": "Personal Information",
+    "contactInfo": "Contact Information",
+    "jobInfo": "Job Information",
+    "bankInfo": "Bank Information",
+    "documents": "Upload Documents",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "aadharNo": "Aadhar No",
+      "panCard": "Pancard No",
+      "education": "Education",
+      "bloodGroup": "Blood Group",
+      "jobRole": "Job Role",
+      "gender": "Gender",
+      "address": "Address",
+      "department": "Department",
+      "birthDate": "Birth Date",
+      "joiningDate": "Joining Date",
+      "status": "Status",
+      "bankName": "Bank Name",
+      "bankAccountNo": "Bank Account No",
+      "bankIfscCode": "Bank IFSC Code",
+      "branchName": "Branch Name",
+      "salary": "Current CTC",
+      "password": "Password"
+    },
+    "placeholders": {
+      "firstName": "Enter first name",
+      "lastName": "Enter last name",
+      "email": "Enter email address",
+      "phone": "Enter phone number",
+      "aadharNo": "Enter Aadhar number",
+      "panCard": "Enter your PAN card (e.g., ABCDE1234F)",
+      "address": "Address Details",
+      "bankName": "Bank Name",
+      "bankAccountNo": "Account No",
+      "bankIfscCode": "Enter IFSC code (e.g., ABCD0EF1234)",
+      "branchName": "Branch Name",
+      "salary": "Salary"
+    },
+    "options": {
+      "selectEducation": "Select education",
+      "selectBloodGroup": "Select blood group",
+      "selectJobRole": "Select JobRole",
+      "selectGender": "Select gender",
+      "selectDepartment": "Select department",
+      "selectStatus": "Select status"
+    },
+    "educationOptions": {
+      "hsc": "HSC",
+      "graduate": "Graduate",
+      "postGraduate": "Post Graduate"
+    },
+    "bloodGroupOptions": {
+      "aPlus": "A+",
+      "bPlus": "B+",
+      "oPlus": "O+",
+      "abPlus": "AB+"
+    },
+    "genderOptions": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "jobRoleOptions": {
+      "hr": "HR",
+      "manager": "MANAGER",
+      "mernDeveloper": "MERN STACK DEVELOPER",
+      "supervisor": "SUPERVISOR",
+      "digitalMarketing": "DIGITAL MARKETING INTERN",
+      "javaFullStack": "JAVA FULL STACK DEVELOPER",
+      "telecaller": "TELECALLER EXCUTIVE",
+      "backOffice": "BACK OFFICE"
+    },
+    "departmentOptions": {
+      "engineering": "Engineering (Development)",
+      "qa": "Quality Assurance (QA / Test)",
+      "devops": "DevOps / Release Management",
+      "itOps": "IT Operations / Infrastructure",
+      "productManagement": "Product Management",
+      "uiux": "UI/UX / Design",
+      "security": "Information Security",
+      "dataAnalytics": "Data & Analytics",
+      "hr": "Human Resources (HR)",
+      "finance": "Finance & Accounting",
+      "sales": "Sales & Business Development",
+      "marketing": "Marketing",
+      "customerSupport": "Customer Support / Service Desk",
+      "legal": "Legal / Compliance",
+      "procurement": "Procurement / Vendor Management"
+    },
+    "documentLabels": {
+      "employeePhoto": "Employee Photo",
+      "aadharCard": "Aadhar Card Image",
+      "panCard": "PAN Card Image"
+    },
+    "buttons": {
+      "addEmployee": "Add Employee",
+      "updateEmployee": "Update",
+      "cancel": "Cancel",
+      "reset": "Reset"
+    }
+  },
+  "attendanceManagement": {
+    "markAttendanceTitle": "Mark Attendance",
+    "viewAttendanceTitle": "View Attendance",
+    "employeeNameLabel": "Employee Name",
+    "employeeNamePlaceholder": "Enter employee name",
+    "selectedDatesTitle": "Selected Dates",
+    "totalSelected": "Total Selected:",
+    "clearAll": "Clear All",
+    "noDateSelected": "No dates selected",
+    "submitAttendance": "Submit Attendance",
+    "submitting": "Submitting...",
+    "enterEmployeeNameFirst": "Please enter employee name first",
+    "selectAtLeastOneDate": "Please select at least one date",
+    "reasonRequired": "Reason required for {status} on {date}",
+    "enterReason": "Enter Reason",
+    "reasonFor": "Reason for",
+    "enterReasonPlaceholder": "Enter reason...",
+    "reasonIsRequired": "Reason is required.",
+    "attendanceFor": "Attendance for {name}",
+    "attendanceDetails": "Attendance Details for {date}",
+    "status": "Status",
+    "reason": "Reason",
+    "noReason": "N/A",
+    "loadingAttendance": "Loading...",
+    "clear": "Clear",
+    "exportToExcel": "Export to Excel",
+    "enterEmployeeFullName": "Enter Employee Full Name",
+    "noSubadminFound": "No Subadmin found. Please log in again.",
+    "failedToLoadEmployeeList": "Failed to load employee list",
+    "failedToLoadAttendanceData": "Failed to load attendance data",
+    "errorFetchingAttendance": "Error fetching attendance data:",
+    "attendanceAlreadyMarked": "Attendance for {date} is already marked as \"{status}\"",
+    "attendanceUpdated": "Updated attendance from \"{oldStatus}\" to \"{newStatus}\" for {date}",
+    "markedNewAttendance": "Marked new attendance as \"{status}\" for {date}",
+    "attendanceProcessedSuccessfully": "Successfully processed {count} attendance records!",
+    "addedAttendance": "Added attendance for {date}: {status}",
+    "updatedAttendance": "Updated attendance for {date}: {status}",
+    "networkError": "Network error: Cannot connect to the server. Is the backend running?",
+    "accessDenied": "Access denied. Please check your login credentials or permissions.",
+    "unauthorized": "Unauthorized. Please log in again.",
+    "serverError": "Server error:",
+    "days": "days"
+  },
+  "checkImages": {
+    "title": "Check Attendance Images",
+    "subtitle": "View work from field attendance images",
+    "selectDate": "Select Date",
+    "searchByEmployee": "Search by Employee",
+    "selectEmployee": "Select Employee",
+    "searchPlaceholder": "Search by name or ID...",
+    "searchImage": "Search Image",
+    "viewAllImages": "View All Images",
+    "employeeImage": "Employee Image",
+    "allImagesForDate": "All Images for",
+    "employee": "Employee",
+    "date": "Date",
+    "workType": "Work Type",
+    "punchIn": "Punch In",
+    "punchOut": "Punch Out",
+    "notRecorded": "Not recorded",
+    "loadingHighQuality": "Loading high-quality image...",
+    "clickToView": "Click image to view in original quality • Right-click to save",
+    "viewOriginal": "View Original",
+    "downloadImage": "Download Image",
+    "status": "Status",
+    "errors": {
+      "selectEmployeeAndDate": "Please select employee and date",
+      "selectDate": "Please select a date",
+      "failedToFetch": "Failed to fetch employees",
+      "failedToFetchImage": "Failed to fetch image",
+      "failedToFetchImages": "Failed to fetch images",
+      "failedToLoadImage": "Failed to load high-quality image",
+      "noImageFound": "No image found for this date",
+      "noImagesFound": "No work from field images found for this date"
+    },
+    "success": {
+      "imageFound": "Image found!"
+    }
+  },
+  "dashboardExtended": {
+    "companyInfo": {
+      "defaultCompanyName": "WTL HRM Dashboard",
+      "fallbackCompanyName": "TECH mahindra",
+      "hrmDashboard": "Hrm Dashboard"
+    },
+    "themeToggle": {
+      "switchToLight": "Switch to Light Mode",
+      "switchToDark": "Switch to Dark Mode"
+    },
+    "reminders": {
+      "todaysFestival": "Today's Festival",
+      "date": "Date"
+    },
+    "jobRoles": {
+      "unassigned": "Unassigned"
+    },
+    "tableHeaders": {
+      "role": "Role",
+      "total": "Total",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "employeesByJobRole": "Employees by Job Role"
   }
 }

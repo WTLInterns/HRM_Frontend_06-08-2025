@@ -51,7 +51,7 @@ const CompanyLetterhead = () => {
         const email = user.email || "arbaj.shaikh2034@gmail.com";
         
         console.log("Fetching subadmin data for email:", email);
-        const response = await axios.get(`https://api.managifyhr.com/api/subadmin/subadmin-by-email/${email}`);
+        const response = await axios.get(`http://localhost:8282/api/subadmin/subadmin-by-email/${email}`);
         console.log("Subadmin API Response:", response.data);
         setSubadmin(response.data);
         setLoading(false);
@@ -143,7 +143,7 @@ const CompanyLetterhead = () => {
           
           // If image src is relative path to profile image, convert to absolute URL
           if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-            const newSrc = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+            const newSrc = `http://localhost:8282${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             console.log(`Converting relative URL to absolute: ${img.src} -> ${newSrc}`);
             img.src = newSrc;
           } else {
@@ -211,7 +211,7 @@ const CompanyLetterhead = () => {
             
             // Fix image URLs for server resources
             if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-              img.src = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+              img.src = `http://localhost:8282${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             }
           });
         }
@@ -402,7 +402,7 @@ const CompanyLetterhead = () => {
                     {letterheadConfig.showLogo && subadmin && subadmin.companylogo && (
                       <div className="mb-4">
                         <img 
-                          src={`https://api.managifyhr.com/images/profile/${subadmin.companylogo}`} 
+                          src={`http://localhost:8282/images/profile/${subadmin.companylogo}`} 
                           alt="Company Logo" 
                           className="h-20 object-contain" 
                           onError={(e) => {

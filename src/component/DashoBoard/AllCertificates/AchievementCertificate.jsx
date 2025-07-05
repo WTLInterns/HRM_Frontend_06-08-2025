@@ -63,7 +63,7 @@ const AchievementCertificate = () => {
         setLoading(true);
         const user = JSON.parse(localStorage.getItem("user")) || {};
         const email = user.email || "arbaj.shaikh2034@gmail.com";
-        const response = await axios.get(`https://api.managifyhr.com/api/subadmin/subadmin-by-email/${email}`);
+        const response = await axios.get(`http://localhost:8282/api/subadmin/subadmin-by-email/${email}`);
         setSubadmin(response.data);
         fetchEmployees(response.data.id);
       } catch (error) {
@@ -77,7 +77,7 @@ const AchievementCertificate = () => {
 
   const fetchEmployees = async (subadminId) => {
     try {
-      const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
+      const response = await axios.get(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
       setEmployees(response.data);
       setLoading(false);
     } catch (error) {
@@ -197,7 +197,7 @@ const AchievementCertificate = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('file', pdfBlob, 'AchievementCertificate.pdf');
       Object.entries(formData).forEach(([key, value]) => formDataToSend.append(key, value));
-      const apiUrl = `https://api.managifyhr.com/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/achievement`;
+      const apiUrl = `http://localhost:8282/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/achievement`;
       await axios.post(apiUrl, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Certificate sent successfully!');
     } catch (error) {
@@ -431,7 +431,7 @@ const AchievementCertificate = () => {
                     <div className="flex justify-center mb-4">
                       {subadmin && subadmin.companylogo && (
                         <img 
-                          src={`https://api.managifyhr.com/images/profile/${subadmin.companylogo}`} 
+                          src={`http://localhost:8282/images/profile/${subadmin.companylogo}`} 
                           alt="Company Logo" 
                           className="h-20 object-contain" 
                           onError={(e) => {
@@ -508,7 +508,7 @@ const AchievementCertificate = () => {
                         {subadmin && subadmin.signature ? (
                           <div className="flex flex-col items-end">
                             <img 
-                              src={`https://api.managifyhr.com/images/profile/${subadmin.signature}`} 
+                              src={`http://localhost:8282/images/profile/${subadmin.signature}`} 
                               alt="Signature" 
                               className="h-16 object-contain ml-auto mb-2" 
                               onError={(e) => {
@@ -534,7 +534,7 @@ const AchievementCertificate = () => {
                       <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
                         <div className="p-1 rounded-lg bg-white/90 border border-gray-200 shadow-sm">
                           <img 
-                            src={`https://api.managifyhr.com/images/profile/${subadmin.stampImg}`} 
+                            src={`http://localhost:8282/images/profile/${subadmin.stampImg}`} 
                             alt="Company Stamp" 
                             className="h-32 w-32 object-contain" 
                             style={{ imageRendering: 'crisp-edges', filter: 'contrast(1.05)' }}

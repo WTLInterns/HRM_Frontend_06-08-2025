@@ -94,11 +94,11 @@ const Dashboard = () => {
     name: "",
     lastname: "",
     companylogo: "",
-    registercompanyname: "WTL HRM Dashboard",
+    registercompanyname: t('dashboardExtended.companyInfo.defaultCompanyName'),
     status: "active",
   });
   const [logoLoadAttempt, setLogoLoadAttempt] = useState(0);
-  const BACKEND_URL = useMemo(() => "https://api.managifyhr.com", []);
+  const BACKEND_URL = useMemo(() => "http://localhost:8282", []);
   const defaultImage = "/image/admin-profile.jpg";
 
   // Handle inactive user logout with polling
@@ -187,7 +187,7 @@ const Dashboard = () => {
         name: user.name || "",
         lastname: user.lastname || "",
         companylogo: user.companylogo || "",
-        registercompanyname: user.registercompanyname || "WTL HRM Dashboard",
+        registercompanyname: user.registercompanyname || t('dashboardExtended.companyInfo.defaultCompanyName'),
         status: user.status || "active",
       });
     }
@@ -300,7 +300,7 @@ const Dashboard = () => {
 
   // Chart data
   const pieChartData = {
-    labels: ["Active Salary", "Inactive Salary"],
+    labels: [t('dashboard.charts.activeSalary'), t('dashboard.charts.inactiveSalary')],
     datasets: [
       {
         data: [stats.activeSalary, stats.inactiveSalary],
@@ -318,7 +318,7 @@ const Dashboard = () => {
   };
 
   const employeeStatusData = {
-    labels: ["Active Employees", "Inactive Employees"],
+    labels: [t('dashboard.charts.activeEmployees'), t('dashboard.charts.inactiveEmployees')],
     datasets: [
       {
         data: [stats.activeEmployees, stats.inactiveEmployees],
@@ -346,8 +346,8 @@ const Dashboard = () => {
   const barChartData = {
     labels: yearlyData.map((item) => item.year),
     datasets: [
-      { label: "Profit", data: yearlyData.map((item) => item.profit), backgroundColor: "rgba(56, 189, 248, 0.85)", borderColor: "rgba(56, 189, 248, 1)", borderWidth: 1 },
-      { label: "Loss", data: yearlyData.map((item) => item.loss), backgroundColor: "rgba(251, 113, 133, 0.85)", borderColor: "rgba(251, 113, 133, 1)", borderWidth: 1 },
+      { label: t('dashboard.charts.profit'), data: yearlyData.map((item) => item.profit), backgroundColor: "rgba(56, 189, 248, 0.85)", borderColor: "rgba(56, 189, 248, 1)", borderWidth: 1 },
+      { label: t('dashboard.charts.loss'), data: yearlyData.map((item) => item.loss), backgroundColor: "rgba(251, 113, 133, 0.85)", borderColor: "rgba(251, 113, 133, 1)", borderWidth: 1 },
     ],
   };
 
@@ -414,7 +414,7 @@ const Dashboard = () => {
 
   // Job role chart data
   const jobRoleSummary = emp.reduce((acc, employee) => {
-    const role = employee.jobRole || "Unassigned";
+    const role = employee.jobRole || t('dashboardExtended.jobRoles.unassigned');
     if (!acc[role]) acc[role] = { active: 0, inactive: 0 };
     if (employee.status.toLowerCase() === "active") acc[role].active += 1;
     else acc[role].inactive += 1;
@@ -426,8 +426,8 @@ const Dashboard = () => {
   const jobRoleChartData = {
     labels: jobRoleLabels,
     datasets: [
-      { label: "Active Employees", data: activeJobRoleCounts, backgroundColor: "rgba(34, 197, 94, 0.85)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1 },
-      { label: "Inactive Employees", data: inactiveJobRoleCounts, backgroundColor: "rgba(239, 68, 68, 0.85)", borderColor: "rgba(239, 68, 68, 1)", borderWidth: 1 },
+      { label: t('dashboard.charts.activeEmployees'), data: activeJobRoleCounts, backgroundColor: "rgba(34, 197, 94, 0.85)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1 },
+      { label: t('dashboard.charts.inactiveEmployees'), data: inactiveJobRoleCounts, backgroundColor: "rgba(239, 68, 68, 0.85)", borderColor: "rgba(239, 68, 68, 1)", borderWidth: 1 },
     ],
   };
 
@@ -561,9 +561,9 @@ const Dashboard = () => {
               <div className="mb-4">
                 <FaBell className="text-4xl text-yellow-500 mx-auto animate-bounce" />
               </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}>Today's Festival: {currentReminder.functionName}</h3>
+              <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}>{t('dashboardExtended.reminders.todaysFestival')}: {currentReminder.functionName}</h3>
               <div className={`mt-4 p-3 rounded ${isDarkMode ? "bg-gray-700" : "bg-blue-50"}`}>
-                <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>Date: {new Date(currentReminder.reminderDate).toLocaleDateString()}</p>
+                <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>{t('dashboardExtended.reminders.date')}: {new Date(currentReminder.reminderDate).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -602,7 +602,7 @@ const Dashboard = () => {
       </div>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-slate-800 text-white shadow-md">
         <div></div>
-        <h1 className="text-xl font-bold animate-pulse-slow">{userData.registercompanyname || "TECH mahindra"}</h1>
+        <h1 className="text-xl font-bold animate-pulse-slow">{userData.registercompanyname || t('dashboardExtended.companyInfo.fallbackCompanyName')}</h1>
         <div className="flex items-center gap-2">
           <LanguageToggle position="right" />
         </div>
@@ -617,9 +617,9 @@ const Dashboard = () => {
                 <img src={defaultImage} alt="Admin" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-300" onError={(e) => { e.target.src = "/image/lap2.jpg"; e.target.onerror = null; }} />
               )}
             </div>
-            <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-800"} group-hover:text-blue-400 transition-all duration-300 text-center`}>{userData.registercompanyname || "TECH mahindra"}</h2>
+            <h2 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-800"} group-hover:text-blue-400 transition-all duration-300 text-center`}>{userData.registercompanyname || t('dashboardExtended.companyInfo.fallbackCompanyName')}</h2>
             {userData.name && (
-              <p className={`${isDarkMode ? "text-blue-400" : "text-blue-600"} group-hover:text-blue-300 transition-all duration-300 text-center`}>Hrm Dashboard</p>
+              <p className={`${isDarkMode ? "text-blue-400" : "text-blue-600"} group-hover:text-blue-300 transition-all duration-300 text-center`}>{t('dashboardExtended.companyInfo.hrmDashboard')}</p>
             )}
           </Link>
           <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -627,7 +627,7 @@ const Dashboard = () => {
           </div>
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <NotificationBell />
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-700/50 transition-all duration-300" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-700/50 transition-all duration-300" title={isDarkMode ? t('dashboardExtended.themeToggle.switchToLight') : t('dashboardExtended.themeToggle.switchToDark')}>
               {isDarkMode ? <FaSun className="text-yellow-300 text-xl" /> : <FaMoon className="text-gray-600 text-xl" />}
             </button>
           </div>
