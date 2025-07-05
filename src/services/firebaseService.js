@@ -96,7 +96,7 @@ class FirebaseService {
       const token = await this.generateToken();
       console.log('🔄 FCM token generated, registering with backend...');
 
-      const response = await fetch('http://localhost:8282/api/fcm/register-token', {
+      const response = await fetch('https://api.managifyhr.com/api/fcm/register-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ class FirebaseService {
 
   async getNotifications(userType, userId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${userType}/${userId}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ class FirebaseService {
   // Get unread notification count
   async getUnreadCount(userType, userId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${userType}/${userId}/unread-count`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}/unread-count`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +214,7 @@ class FirebaseService {
   // Mark notification as read
   async markAsRead(notificationId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${notificationId}/mark-read`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${notificationId}/mark-read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ class FirebaseService {
   // Mark all notifications as read
   async markAllAsRead(userType, userId) {
     try {
-      const response = await fetch(`http://localhost:8282/api/fcm/notifications/${userType}/${userId}/mark-all-read`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${userType}/${userId}/mark-all-read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ class FirebaseService {
   // Update notification preferences
   async updateNotificationPreferences(userType, userId, enabled) {
     try {
-      const response = await fetch('http://localhost:8282/api/fcm/update-preferences', {
+      const response = await fetch('https://api.managifyhr.com/api/fcm/update-preferences', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

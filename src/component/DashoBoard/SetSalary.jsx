@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { FaCalculator, FaSave, FaPercent, FaRupeeSign } from "react-icons/fa";
 import { MdSettings } from "react-icons/md";
 
-const API_URL = "http://localhost:8282/api";
+const API_URL = "https://api.managifyhr.com/api";
 
 const SetSalary = () => {
   const { isDarkMode } = useApp();
