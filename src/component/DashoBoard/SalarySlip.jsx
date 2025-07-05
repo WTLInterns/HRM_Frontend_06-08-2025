@@ -340,7 +340,7 @@ export default function SalaryReport() {
           // Create objects to hold our images
           const images = {
             signature: null,
-            companyLogo: null
+            companyStamp: null
           };
           
           // Track how many images have loaded
@@ -373,21 +373,21 @@ export default function SalaryReport() {
             `/image/lap2.jpg` : // Local path to avoid CORS
             `/image/lap2.jpg`;
           
-          // Load company logo
-          const logoImg = new Image();
-          logoImg.onerror = () => {
-            console.log("Error loading company logo, using fallback");
-            images.companyLogo = companyLogo;
+          // Load company stamp image
+          const stampImg = new Image();
+          stampImg.onerror = () => {
+            console.log("Error loading company stamp, using fallback");
+            images.companyStamp = companyLogo;
             checkAllLoaded();
           };
-          logoImg.onload = () => {
-            console.log("Company logo loaded successfully");
-            images.companyLogo = logoImg.src;
+          stampImg.onload = () => {
+            console.log("Company stamp loaded successfully");
+            images.companyStamp = stampImg.src;
             checkAllLoaded();
           };
-          
+
           // Add cache-busting timestamp
-          logoImg.src = userData.companylogo ? 
+          stampImg.src = userData.stampImg ?
             `/image/lap2.jpg` : // Local path to avoid CORS
             `/image/lap2.jpg`;
           
@@ -797,7 +797,7 @@ export default function SalaryReport() {
         // ===================
         // SIGNATURE SECTION
         // ===================
-        // 2 columns: left = Prepared By + WTL sign, right = Approved By + company logo + bigger WTL sign below.
+        // 2 columns: left = Prepared By + signature, right = Approved By + company stamp.
         const sigColumnWidth = contentWidth / 2
         const signatureStartY = yPos
 
@@ -835,27 +835,32 @@ export default function SalaryReport() {
           );
         }
 
-        // Right column: Company logo
-        const logo = `https://api.managifyhr.com/images/profile/${user.companylogo}`
+        // Right column: Company stamp image (centered in the box)
+        const stampImg = `https://api.managifyhr.com/images/profile/${user.stampImg}`
+        const stampWidth = 40;
+        const stampHeight = 30;
+        const stampX = margin + sigColumnWidth + (sigColumnWidth - stampWidth) / 2; // Center horizontally
+        const stampY = yPos + (signatureRowHeight - stampHeight) / 2; // Center vertically
+
         try {
           doc.addImage(
-           logo,
+           stampImg,
             "JPEG",
-            margin + sigColumnWidth + 10,
-            yPos + 5,
-            50,
-            35
+            stampX,
+            stampY,
+            stampWidth,
+            stampHeight
           );
         } catch (error) {
-          console.error("Error adding company logo:", error);
-          // Use fallback
+          console.error("Error adding company stamp:", error);
+          // Use fallback to company logo if stamp is not available
           doc.addImage(
             companyLogo,
             "JPEG",
-            margin + sigColumnWidth + 10,
-            yPos + 5,
-            50,
-            35
+            stampX,
+            stampY,
+            stampWidth,
+            stampHeight
           );
         }
 
