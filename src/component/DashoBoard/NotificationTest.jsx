@@ -102,7 +102,7 @@ const NotificationTest = () => {
       };
 
       const response = await fetch(
-        `http://localhost:8282/api/leaveform/${userData.subadmin?.id || userData.id}/${userData.empId || userData.id}/${userToken}/${subadminToken}`,
+        `https://api.managifyhr.com/api/leaveform/${userData.subadmin?.id || userData.id}/${userData.empId || userData.id}/${userToken}/${subadminToken}`,
         {
           method: 'POST',
           headers: {

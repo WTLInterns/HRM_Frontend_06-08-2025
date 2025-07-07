@@ -98,7 +98,7 @@ const Dashboard = () => {
     status: "active",
   });
   const [logoLoadAttempt, setLogoLoadAttempt] = useState(0);
-  const BACKEND_URL = useMemo(() => "http://localhost:8282", []);
+  const BACKEND_URL = useMemo(() => "https://api.managifyhr.com", []);
   const defaultImage = "/image/admin-profile.jpg";
 
   // Handle inactive user logout with polling

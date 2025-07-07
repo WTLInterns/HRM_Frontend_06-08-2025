@@ -62,7 +62,7 @@ const Sidebar = () => {
         
         // Use the email to build the profile image URL
         if (parsedUser.email) {
-          const imageUrl = `http://localhost:8282/masteradmin/profileImg?email=${parsedUser.email}`;
+          const imageUrl = `https://api.managifyhr.com/masteradmin/profileImg?email=${parsedUser.email}`;
           setProfileImg(imageUrl);
         }
       } catch (error) {
