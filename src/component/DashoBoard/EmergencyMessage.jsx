@@ -6,7 +6,7 @@ import { FaExclamationTriangle, FaPaperPlane, FaUsers } from "react-icons/fa";
 import { MdEmergency } from "react-icons/md";
 import firebaseService from "../../services/firebaseService";
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8282/api";
 
 const EmergencyMessage = () => {
   const { isDarkMode } = useApp();

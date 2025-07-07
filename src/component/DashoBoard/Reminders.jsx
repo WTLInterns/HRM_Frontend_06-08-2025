@@ -12,8 +12,8 @@ const Reminders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState(null);
-  const [newReminder, setNewReminder] = useState({
+  const [selectedReminder, setSelectedReminder] = useState(null); 
+  const [newReminder, setNewReminder] = useState({       
     functionName: '',
     reminderDate: ''
   });    
@@ -30,11 +30,11 @@ const Reminders = () => {
       const subadminId = getSubadminId();
       if (!subadminId) return;
 
-      const response = await axios.get(`https://api.managifyhr.com/api/reminders/${subadminId}`);
+      const response = await axios.get(`http://localhost:8282/api/reminders/${subadminId}`);
       setReminders(response.data);
     } catch (error) {
       console.error('Error fetching reminders:', error);
-      toast.error('Failed to fetch reminders');
+      toast.error(t('reminders.errors.failedToFetch'));
     }
   };
 
@@ -73,12 +73,12 @@ const Reminders = () => {
           id: selectedReminder.id
         };
         console.log('Updating reminder:', reminderData); // Debug log
-        await axios.put(`https://api.managifyhr.com/api/reminders/${selectedReminder.id}`, reminderData);
-        toast.success('Reminder updated successfully');
+        await axios.put(`http://localhost:8282/api/reminders/${selectedReminder.id}`, reminderData);
+        toast.success(t('reminders.success.updated'));
       } else {
         console.log('Creating reminder:', reminderData); // Debug log
-        await axios.post('https://api.managifyhr.com/api/reminders', reminderData);
-        toast.success('Reminder added successfully');
+        await axios.post('http://localhost:8282/api/reminders', reminderData);
+        toast.success(t('reminders.success.added'));
       }
       setIsEditing(false);
       setSelectedReminder(null);
@@ -87,7 +87,7 @@ const Reminders = () => {
       fetchReminders();
     } catch (error) {
       console.error('Error with reminder:', error);
-      toast.error(isEditing ? 'Failed to update reminder' : 'Failed to add reminder');
+      toast.error(isEditing ? t('reminders.errors.failedToUpdate') : t('reminders.errors.failedToAdd'));
     }
   };
 
@@ -95,13 +95,13 @@ const Reminders = () => {
   const handleDeleteReminder = async (reminderId) => {
     try {
       console.log('Deleting reminder with ID:', reminderId); // Debug log
-      await axios.delete(`https://api.managifyhr.com/api/reminders/${reminderId}`);
-      toast.success('Reminder deleted successfully');
+      await axios.delete(`http://localhost:8282/api/reminders/${reminderId}`);
+      toast.success(t('reminders.success.deleted'));
       fetchReminders();
     } catch (error) {
       console.error('Error deleting reminder:', error); // Debug log
       console.error('Error deleting reminder:', error);
-      toast.error('Failed to delete reminder');
+      toast.error(t('reminders.errors.failedToDelete'));
     }
   };
 
@@ -117,7 +117,7 @@ const Reminders = () => {
           <div className="flex-1 mr-4">
             <input
               type="text"
-              placeholder="Search by function name..."
+              placeholder={t('reminders.searchPlaceholder')}
               className={`w-full px-4 py-2 rounded-lg ${
                 isDarkMode 
                   ? 'bg-gray-800 text-white border-gray-700' 
@@ -131,7 +131,7 @@ const Reminders = () => {
             onClick={() => setShowAddModal(true)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
           >
-            <FaBell /> Add Reminder
+            <FaBell /> {t('reminders.addReminder')}
           </button>
         </div>
 
@@ -140,15 +140,15 @@ const Reminders = () => {
           <h2 className={`p-4 text-lg font-semibold border-b ${
             isDarkMode ? 'border-gray-700' : 'border-gray-200'
           }`}>
-            Upcoming Reminders
+            {t('reminders.title')}
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <tr>
-                  <th className="px-6 py-3 text-left">Function Name</th>
-                  <th className="px-6 py-3 text-left">Date</th>
-                  <th className="px-6 py-3 text-left">Action</th>
+                  <th className="px-6 py-3 text-left">{t('reminders.functionName')}</th>
+                  <th className="px-6 py-3 text-left">{t('reminders.date')}</th>
+                  <th className="px-6 py-3 text-left">{t('reminders.action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,7 +180,7 @@ const Reminders = () => {
                 ) : (
                   <tr>
                     <td colSpan="5" className="px-6 py-4 text-center">
-                      No reminders found
+                      {t('reminders.noRemindersFound')}
                     </td>
                   </tr>
                 )}
@@ -205,12 +205,12 @@ const Reminders = () => {
             <h3 className={`text-xl font-bold mb-4 ${
               isDarkMode ? 'text-white' : 'text-gray-800'
             }`}>
-              {isEditing ? t('common.update') + ' ' + t('navigation.setReminder') : t('common.add') + ' ' + t('navigation.setReminder')}
+              {isEditing ? t('reminders.updateReminder') : t('reminders.addReminder')}
             </h3>
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder="Function Name"
+                placeholder={t('reminders.functionNamePlaceholder')}
                 className={`w-full px-4 py-2 rounded-lg ${
                   isDarkMode 
                     ? 'bg-gray-700 text-white border-gray-600' 
@@ -235,7 +235,7 @@ const Reminders = () => {
                 onClick={handleAddReminder}
                 className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                {isEditing ? 'Update Reminder' : 'Add Reminder'}
+                {isEditing ? t('reminders.updateReminder') : t('reminders.addReminder')}
               </button>
             </div>
           </div>

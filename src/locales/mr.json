@@ -781,5 +781,86 @@
       "inactive": "निष्क्रिय"
     },
     "employeesByJobRole": "नोकरीच्या भूमिकेनुसार कर्मचारी"
+  },
+  "reminders": {
+    "title": "आगामी रिमाइंडर",
+    "searchPlaceholder": "फंक्शन नावाने शोधा...",
+    "addReminder": "रिमाइंडर जोडा",
+    "updateReminder": "रिमाइंडर अपडेट करा",
+    "functionName": "फंक्शन नाव",
+    "date": "तारीख",
+    "action": "कृती",
+    "noRemindersFound": "कोणतेही रिमाइंडर सापडले नाहीत",
+    "functionNamePlaceholder": "फंक्शन नाव",
+    "errors": {
+      "failedToFetch": "रिमाइंडर आणण्यात अयशस्वी",
+      "failedToAdd": "रिमाइंडर जोडण्यात अयशस्वी",
+      "failedToUpdate": "रिमाइंडर अपडेट करण्यात अयशस्वी",
+      "failedToDelete": "रिमाइंडर हटवण्यात अयशस्वी"
+    },
+    "success": {
+      "added": "रिमाइंडर यशस्वीरित्या जोडले",
+      "updated": "रिमाइंडर यशस्वीरित्या अपडेट केले",
+      "deleted": "रिमाइंडर यशस्वीरित्या हटवले"
+    }
+  },
+  "leaveApproval": {
+    "title": "रजा मंजुरी",
+    "viewPendingLeaves": "प्रलंबित रजा पहा",
+    "viewStatus": "स्थिती पहा",
+    "searchPlaceholder": "कर्मचाऱ्याचे नाव टाका",
+    "selectEmployeeMessage": "रजा विनंत्या पाहण्यासाठी कृपया एक कर्मचारी निवडा।",
+    "statusSummary": {
+      "total": "एकूण",
+      "approved": "मंजूर",
+      "rejected": "नाकारले",
+      "pending": "प्रलंबित"
+    },
+    "filters": {
+      "all": "सर्व",
+      "approved": "मंजूर",
+      "rejected": "नाकारले",
+      "pending": "प्रलंबित"
+    },
+    "tableHeaders": {
+      "employeeName": "कर्मचाऱ्याचे नाव",
+      "fromDate": "पासून तारीख",
+      "toDate": "पर्यंत तारीख",
+      "reason": "कारण",
+      "status": "स्थिती",
+      "actions": "कृती"
+    },
+    "actions": {
+      "approve": "मंजूर करा",
+      "reject": "नाकारा",
+      "delete": "हटवा"
+    },
+    "confirmDelete": {
+      "title": "हटवण्याची पुष्टी करा",
+      "message": "तुम्हाला खरोखर ही रजा विनंती हटवायची आहे का?",
+      "cancel": "रद्द करा",
+      "delete": "हटवा"
+    },
+    "messages": {
+      "noLeaveRequests": "कोणत्याही रजा विनंत्या सापडल्या नाहीत।",
+      "noPendingLeaves": "या तारखेसाठी कोणतीही प्रलंबित रजा नाही।",
+      "loading": "लोड होत आहे..."
+    },
+    "errors": {
+      "failedToFetch": "रजा डेटा आणण्यात अयशस्वी",
+      "failedToFetchEmployees": "कर्मचारी आणण्यात अयशस्वी",
+      "failedToFetchPendingLeaves": "प्रलंबित रजा आणण्यात अयशस्वी",
+      "failedToApprove": "रजा मंजूर करण्यात अयशस्वी",
+      "failedToReject": "रजा नाकारण्यात अयशस्वी",
+      "failedToDelete": "रजा हटवण्यात अयशस्वी",
+      "failedToUpdate": "रजा अपडेट करण्यात अयशस्वी",
+      "userNotLoggedIn": "वापरकर्ता लॉग इन नाही किंवा कर्मचारी निवडला नाही. कृपया पुन्हा लॉगिन करा.",
+      "unknownError": "अज्ञात त्रुटी"
+    },
+    "success": {
+      "leaveApproved": "रजा यशस्वीरित्या मंजूर! कर्मचाऱ्याला कळवले जाईल.",
+      "leaveRejected": "रजा यशस्वीरित्या नाकारली! कर्मचाऱ्याला कळवले जाईल.",
+      "leaveDeleted": "रजा यशस्वीरित्या हटवली!"
+    }
   }
 }

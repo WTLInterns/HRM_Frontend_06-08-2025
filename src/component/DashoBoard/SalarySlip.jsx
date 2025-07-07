@@ -243,7 +243,7 @@ export default function SalaryReport() {
       const apiEndDate = toApiDate(endDate.trim());
       // Using the new API endpoint format
       const response = await axios.get(
-        `https://api.managifyhr.com/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
+        `http://localhost:8282/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -251,7 +251,7 @@ export default function SalaryReport() {
       try {
         // Get employee by name - this should return the full employee entity
         // const empResponse = await axios.get(
-        //   `https://api.managifyhr.com/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
+        //   `http://localhost:8282/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
         // )
         if (empResponse.status === 200) {
           employeeDetails = empResponse.data
@@ -460,7 +460,7 @@ export default function SalaryReport() {
         const companyName = userData.registercompanyname ? userData.registercompanyname.toUpperCase() : "COMPANY NAME";
         doc.text(companyName, margin + 4, yPos + headerBoxHeight / 2 + 1, {
           align: "left",
-          baseline: "middle"
+          baseline: "middle"  
         });
         // Company Address (right, wrapped if needed)
         doc.setFontSize(11);
@@ -812,7 +812,7 @@ export default function SalaryReport() {
         createCell(margin + sigColumnWidth, yPos, sigColumnWidth, signatureRowHeight, "", 10, "left")
 
         // Left column: Signature image'
-        const signature = `https://api.managifyhr.com/images/profile/${user.signature}`
+        const signature = `http://localhost:8282/images/profile/${user.signature}`
         try {
           doc.addImage(
             signature,
@@ -836,8 +836,8 @@ export default function SalaryReport() {
         }
 
         // Right column: Company stamp image (centered in the box)
-        const stampImg = `https://api.managifyhr.com/images/profile/${user.stampImg}`
-        const stampWidth = 40;
+        const stampImg = `http://localhost:8282/images/profile/${user.stampImg}`
+        const stampWidth = 60;
         const stampHeight = 30;
         const stampX = margin + sigColumnWidth + (sigColumnWidth - stampWidth) / 2; // Center horizontally
         const stampY = yPos + (signatureRowHeight - stampHeight) / 2; // Center vertically
@@ -942,7 +942,7 @@ export default function SalaryReport() {
       if (value.trim().length > 0 && user && user.id) {
         try {
           // Fetch employee list from backend for autocomplete (like ViewAttendance)
-          const res = await axios.get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`);
+          const res = await axios.get(`http://localhost:8282/api/employee/${user.id}/employee/all`);
           const employeeList = res.data || [];
           const query = value.trim().toLowerCase();
           const list = employeeList.map(emp => ({

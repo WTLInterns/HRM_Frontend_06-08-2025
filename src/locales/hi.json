@@ -781,5 +781,86 @@
       "inactive": "निष्क्रिय"
     },
     "employeesByJobRole": "नौकरी की भूमिका के अनुसार कर्मचारी"
+  },
+  "reminders": {
+    "title": "आगामी रिमाइंडर",
+    "searchPlaceholder": "फ़ंक्शन नाम से खोजें...",
+    "addReminder": "रिमाइंडर जोड़ें",
+    "updateReminder": "रिमाइंडर अपडेट करें",
+    "functionName": "फ़ंक्शन नाम",
+    "date": "तारीख",
+    "action": "कार्य",
+    "noRemindersFound": "कोई रिमाइंडर नहीं मिला",
+    "functionNamePlaceholder": "फ़ंक्शन नाम",
+    "errors": {
+      "failedToFetch": "रिमाइंडर लाने में विफल",
+      "failedToAdd": "रिमाइंडर जोड़ने में विफल",
+      "failedToUpdate": "रिमाइंडर अपडेट करने में विफल",
+      "failedToDelete": "रिमाइंडर हटाने में विफल"
+    },
+    "success": {
+      "added": "रिमाइंडर सफलतापूर्वक जोड़ा गया",
+      "updated": "रिमाइंडर सफलतापूर्वक अपडेट किया गया",
+      "deleted": "रिमाइंडर सफलतापूर्वक हटाया गया"
+    }
+  },
+  "leaveApproval": {
+    "title": "छुट्टी अनुमोदन",
+    "viewPendingLeaves": "लंबित छुट्टियां देखें",
+    "viewStatus": "स्थिति देखें",
+    "searchPlaceholder": "कर्मचारी का नाम दर्ज करें",
+    "selectEmployeeMessage": "छुट्टी अनुरोध देखने के लिए कृपया एक कर्मचारी चुनें।",
+    "statusSummary": {
+      "total": "कुल",
+      "approved": "अनुमोदित",
+      "rejected": "अस्वीकृत",
+      "pending": "लंबित"
+    },
+    "filters": {
+      "all": "सभी",
+      "approved": "अनुमोदित",
+      "rejected": "अस्वीकृत",
+      "pending": "लंबित"
+    },
+    "tableHeaders": {
+      "employeeName": "कर्मचारी का नाम",
+      "fromDate": "से तारीख",
+      "toDate": "तक तारीख",
+      "reason": "कारण",
+      "status": "स्थिति",
+      "actions": "कार्य"
+    },
+    "actions": {
+      "approve": "अनुमोदित करें",
+      "reject": "अस्वीकार करें",
+      "delete": "हटाएं"
+    },
+    "confirmDelete": {
+      "title": "हटाने की पुष्टि करें",
+      "message": "क्या आप वाकई इस छुट्टी अनुरोध को हटाना चाहते हैं?",
+      "cancel": "रद्द करें",
+      "delete": "हटाएं"
+    },
+    "messages": {
+      "noLeaveRequests": "कोई छुट्टी अनुरोध नहीं मिला।",
+      "noPendingLeaves": "इस तारीख के लिए कोई लंबित छुट्टी नहीं।",
+      "loading": "लोड हो रहा है..."
+    },
+    "errors": {
+      "failedToFetch": "छुट्टी डेटा लाने में विफल",
+      "failedToFetchEmployees": "कर्मचारी लाने में विफल",
+      "failedToFetchPendingLeaves": "लंबित छुट्टियां लाने में विफल",
+      "failedToApprove": "छुट्टी अनुमोदित करने में विफल",
+      "failedToReject": "छुट्टी अस्वीकार करने में विफल",
+      "failedToDelete": "छुट्टी हटाने में विफल",
+      "failedToUpdate": "छुट्टी अपडेट करने में विफल",
+      "userNotLoggedIn": "उपयोगकर्ता लॉग इन नहीं है या कर्मचारी चयनित नहीं है। कृपया फिर से लॉगिन करें।",
+      "unknownError": "अज्ञात त्रुटि"
+    },
+    "success": {
+      "leaveApproved": "छुट्टी सफलतापूर्वक अनुमोदित! कर्मचारी को सूचित किया जाएगा।",
+      "leaveRejected": "छुट्टी सफलतापूर्वक अस्वीकार! कर्मचारी को सूचित किया जाएगा।",
+      "leaveDeleted": "छुट्टी सफलतापूर्वक हटाई गई!"
+    }
   }
 }

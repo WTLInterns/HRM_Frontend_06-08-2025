@@ -28,7 +28,7 @@ const SalarySheet = () => {
         console.log("Fetching employees for subadmin ID:", subadminId);
         
         // Call the API with the correct endpoint
-        const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
+        const response = await axios.get(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
         
         console.log("Employee data received:", response.data);
         setEmployees(response.data);

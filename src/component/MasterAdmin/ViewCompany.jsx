@@ -32,7 +32,7 @@ const ViewCompany = () => {
         setLoading(true);
         
         // Fetch data from the API
-        const response = await fetch('https://api.managifyhr.com/api/subadmin/all');
+        const response = await fetch('http://localhost:8282/api/subadmin/all');
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -149,7 +149,7 @@ const ViewCompany = () => {
     if (companyToDelete) {
       try {
         // Make an API call to delete the company
-        const response = await fetch(`https://api.managifyhr.com/api/subadmin/delete/${companyToDelete.id}`, {
+        const response = await fetch(`http://localhost:8282/api/subadmin/delete/${companyToDelete.id}`, {
           method: 'DELETE'
         });
         
@@ -197,7 +197,7 @@ const ViewCompany = () => {
       }
       
       // Call the API to send login details
-      const response = await fetch(`https://api.managifyhr.com/api/subadmin/send-email/${company.email}`, {
+      const response = await fetch(`http://localhost:8282/api/subadmin/send-email/${company.email}`, {
         method: 'POST'
       });
       

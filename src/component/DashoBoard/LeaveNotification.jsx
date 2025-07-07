@@ -28,7 +28,7 @@ const LeaveNotification = () => {
   } catch (e) {
     userData = null;
   }
-  const subadminId = userData?.id;
+  const subadminId = userData?.id;  
   const userRole = userData?.role;
 
   // --- Pending Leaves State ---
@@ -38,14 +38,14 @@ const LeaveNotification = () => {
   const [pendingLeavesLoading, setPendingLeavesLoading] = useState(false);
   const [pendingLeavesError, setPendingLeavesError] = useState(null);
 
-  // Fetch pending leaves when date changes and dialog is open
+  // Fetch pending leaves when date changes and dialog is open    
   useEffect(() => {
     if (!showPendingDialog || !pendingDate || !subadminId) return;
     setPendingLeavesLoading(true);
     setPendingLeavesError(null);
-    fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/all`)
+    fetch(`http://localhost:8282/api/leaveform/${subadminId}/all`)
       .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch pending leaves');
+        if (!res.ok) throw new Error(t('leaveApproval.errors.failedToFetchPendingLeaves'));
         return res.json();
       })
       .then(data => {
@@ -56,7 +56,7 @@ const LeaveNotification = () => {
         );
         setPendingLeaves(filtered);
       })
-      .catch(err => setPendingLeavesError(err.message || 'Unknown error'))
+      .catch(err => setPendingLeavesError(err.message || t('leaveApproval.errors.unknownError')))
       .finally(() => setPendingLeavesLoading(false));
   }, [showPendingDialog, pendingDate, subadminId]);
 
@@ -170,8 +170,8 @@ useEffect(() => {
     const fetchEmployees = async () => {
       if (userRole === 'SUBADMIN' && subadminId) {
         try {
-          const res = await fetch(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
-          if (!res.ok) throw new Error('Failed to fetch employees');
+          const res = await fetch(`http://localhost:8282/api/employee/${subadminId}/employee/all`);
+          if (!res.ok) throw new Error(t('leaveApproval.errors.failedToFetchEmployees'));
           const data = await res.json();
           console.log('Fetched employees:', data); // Debug log
           setEmployees(data);
@@ -209,8 +209,8 @@ useEffect(() => {
           return;
         }
 
-        const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${empIdToUse}`);
-        if (!response.ok) throw new Error('Failed to fetch leave data');
+        const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
+        if (!response.ok) throw new Error(t('leaveApproval.errors.failedToFetch'));
         const data = await response.json();
         const mapped = data.map(item => ({
           id: item.leaveId,
@@ -224,7 +224,7 @@ useEffect(() => {
         }));
         setLeaveData(mapped);
       } catch (err) {
-        setError(err.message || 'Unknown error');
+        setError(err.message || t('leaveApproval.errors.unknownError'));
       } finally {
         setLoading(false);
       }
@@ -250,12 +250,12 @@ useEffect(() => {
       }
 
       if (!subadminId || !empIdToUse) {
-        setError('User not logged in or employee not selected. Please login again.');
+        setError(t('leaveApproval.errors.userNotLoggedIn'));
         setLoading(false);
         return;
       }
-      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${empIdToUse}`);
-      if (!response.ok) throw new Error('Failed to fetch leave data');
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${empIdToUse}`);
+      if (!response.ok) throw new Error(t('leaveApproval.errors.failedToFetch'));
       const data = await response.json();
       const mapped = data.map(item => ({
         id: item.leaveId,
@@ -269,7 +269,7 @@ useEffect(() => {
       }));
       setLeaveData(mapped);
     } catch (err) {
-      setError(err.message || 'Unknown error');
+      setError(err.message || t('leaveApproval.errors.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -327,17 +327,17 @@ useEffect(() => {
       // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
       const { userToken, subadminToken } = await getFCMTokens(leave);
 
-      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
       });
-      if (!response.ok) throw new Error('Failed to update leave');
-      toast.success('Leave approved successfully! Employee will be notified.');
+      if (!response.ok) throw new Error(t('leaveApproval.errors.failedToUpdate'));
+      toast.success(t('leaveApproval.success.leaveApproved'));
       await refreshLeaves();
     } catch (err) {
-      toast.error(err.message || 'Failed to approve leave');
-      setError(err.message || 'Unknown error');
+      toast.error(err.message || t('leaveApproval.errors.failedToApprove'));
+      setError(err.message || t('leaveApproval.errors.unknownError'));
       setLoading(false);
     }
   };
@@ -353,17 +353,17 @@ useEffect(() => {
       // Get FCM tokens from the leave data (employee and subadmin tokens from DB)
       const { userToken, subadminToken } = await getFCMTokens(leave);
 
-      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leave.original.employee.empId}/${id}/${userToken}/${subadminToken}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedLeave)
       });
-      if (!response.ok) throw new Error('Failed to update leave');
-      toast.success('Leave rejected successfully! Employee will be notified.');
+      if (!response.ok) throw new Error(t('leaveApproval.errors.failedToUpdate'));
+      toast.success(t('leaveApproval.success.leaveRejected'));
       await refreshLeaves();
     } catch (err) {
-      toast.error(err.message || 'Failed to reject leave');
-      setError(err.message || 'Unknown error');
+      toast.error(err.message || t('leaveApproval.errors.failedToReject'));
+      setError(err.message || t('leaveApproval.errors.unknownError'));
       setLoading(false);
     }
   };
@@ -382,16 +382,16 @@ useEffect(() => {
     
     try {
       setLoading(true);
-      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${subadminId}/${leaveToDelete.original.employee.empId}/${deleteTargetId}`, {
+      const response = await fetch(`http://localhost:8282/api/leaveform/${subadminId}/${leaveToDelete.original.employee.empId}/${deleteTargetId}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to delete leave');
+      if (!response.ok) throw new Error(t('leaveApproval.errors.failedToDelete'));
       setDeleteDialogOpen(false);
       setDeleteTargetId(null);
-      toast.success('Leave deleted successfully!');
+      toast.success(t('leaveApproval.success.leaveDeleted'));
       await refreshLeaves();
     } catch (err) {
-      toast.error(err.message || 'Failed to delete leave');
+      toast.error(err.message || t('leaveApproval.errors.failedToDelete'));
       setDeleteDialogOpen(false);
       setDeleteTargetId(null);
       setLoading(false);
@@ -457,19 +457,19 @@ useEffect(() => {
           {pendingDate && (
             <div style={{marginTop: 10}}>
               {pendingLeavesLoading ? (
-                <div style={{color: isDarkMode ? '#fff' : '#222'}}>Loading...</div>
+                <div style={{color: isDarkMode ? '#fff' : '#222'}}>{t('leaveApproval.messages.loading')}</div>
               ) : pendingLeavesError ? (
                 <div style={{color: '#f87171'}}>{pendingLeavesError}</div>
               ) : pendingLeaves.length === 0 ? (
-                <div style={{color: isDarkMode ? '#fff' : '#222'}}>No pending leaves found for this date.</div>
+                <div style={{color: isDarkMode ? '#fff' : '#222'}}>{t('leaveApproval.messages.noPendingLeaves')}</div>
               ) : (
                 <table className="leave-table" style={{marginTop: 10, width: '100%'}}>
                   <thead>
                     <tr>
-                      <th>Employee Name</th>
-                      <th>Start Date</th>
-                      <th>End Date</th>
-                      <th>Reason</th>
+                      <th>{t('leaveApproval.tableHeaders.employeeName')}</th>
+                      <th>{t('leaveApproval.tableHeaders.fromDate')}</th>
+                      <th>{t('leaveApproval.tableHeaders.toDate')}</th>
+                      <th>{t('leaveApproval.tableHeaders.reason')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -501,7 +501,7 @@ useEffect(() => {
               letterSpacing: 0.5
             }}
           >
-            CLOSE
+            {t('common.close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -510,7 +510,7 @@ useEffect(() => {
   <input
     type="text"
     className="search-input"
-    placeholder="Enter employee name"
+    placeholder={t('leaveApproval.searchPlaceholder')}
     value={searchTerm}
     onChange={e => {
       setSearchTerm(e.target.value);
@@ -562,37 +562,37 @@ useEffect(() => {
  
 </div>
       {userRole === 'SUBADMIN' && !selectedEmployee && (
-        <div style={{margin: '1rem 0', color: 'orange'}}>Please select an employee to view leave requests.</div>
+        <div style={{margin: '1rem 0', color: 'orange'}}>{t('leaveApproval.selectEmployeeMessage')}</div>
       )}
       <div className="leave-actions-row" style={{marginTop: '1rem', display: 'flex', gap: '1rem'}}>
         <button className="view-leave-btn" onClick={() => setShowStatusSummary(!showStatusSummary)}>
-          View Status
+          {t('leaveApproval.viewStatus')}
         </button>
         <button className="view-leave-btn" onClick={() => setShowPendingDialog(true)}>
-          View Pending Leaves
+          {t('leaveApproval.viewPendingLeaves')}
         </button>
       </div>
       {showStatusSummary && (
         <div className="status-summary">
           <div className="status-counts">
             <div className="status-item">
-              <span className="status-label">Total:</span>
+              <span className="status-label">{t('leaveApproval.statusSummary.total')}:</span>
               <span className="status-value">{leaveData.length}</span>
             </div>
             <div className="status-item">
-              <span className="status-label">Approved:</span>
+              <span className="status-label">{t('leaveApproval.statusSummary.approved')}:</span>
               <span className="status-value">
                 {leaveData.filter(leave => leave.status === 'Approved').length}
               </span>
             </div>
             <div className="status-item">
-              <span className="status-label">Rejected:</span>
+              <span className="status-label">{t('leaveApproval.statusSummary.rejected')}:</span>
               <span className="status-value">
                 {leaveData.filter(leave => leave.status === 'Rejected').length}
               </span>
             </div>
             <div className="status-item">
-              <span className="status-label">Pending:</span>
+              <span className="status-label">{t('leaveApproval.statusSummary.pending')}:</span>
               <span className="status-value">
                 {leaveData.filter(leave => leave.status === 'Pending').length}
               </span>
@@ -603,25 +603,25 @@ useEffect(() => {
               className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
               onClick={() => setStatusFilter('all')}
             >
-              All
+              {t('leaveApproval.filters.all')}
             </button>
             <button
               className={`filter-btn ${statusFilter === 'Approved' ? 'active' : ''}`}
               onClick={() => setStatusFilter('Approved')}
             >
-              Approved
+              {t('leaveApproval.filters.approved')}
             </button>
             <button
               className={`filter-btn ${statusFilter === 'Rejected' ? 'active' : ''}`}
               onClick={() => setStatusFilter('Rejected')}
             >
-              Rejected
+              {t('leaveApproval.filters.rejected')}
             </button>
             <button
               className={`filter-btn ${statusFilter === 'Pending' ? 'active' : ''}`}
               onClick={() => setStatusFilter('Pending')}
             >
-              Pending
+              {t('leaveApproval.filters.pending')}
             </button>
           </div>
         </div>
@@ -632,21 +632,21 @@ useEffect(() => {
         <table className="leave-table">
           <thead>
             <tr>
-              <th>Employee Name</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Reason</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>{t('leaveApproval.tableHeaders.employeeName')}</th>
+              <th>{t('leaveApproval.tableHeaders.fromDate')}</th>
+              <th>{t('leaveApproval.tableHeaders.toDate')}</th>
+              <th>{t('leaveApproval.tableHeaders.reason')}</th>
+              <th>{t('leaveApproval.tableHeaders.status')}</th>
+              <th>{t('leaveApproval.tableHeaders.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6">Loading...</td></tr>
+              <tr><td colSpan="6">{t('leaveApproval.messages.loading')}</td></tr>
             ) : error ? (
               <tr><td colSpan="6" style={{color:'red'}}>{error}</td></tr>
             ) : leaveData.length === 0 ? (
-              <tr><td colSpan="6">No leave requests found.</td></tr>
+              <tr><td colSpan="6">{t('leaveApproval.messages.noLeaveRequests')}</td></tr>
             ) : (
               leaveData
                 .filter(leave => statusFilter === 'all' || leave.status === statusFilter)
@@ -664,14 +664,14 @@ useEffect(() => {
                           onClick={() => handleApprove(leave.id)}
                           disabled={leave.isApproved === true}
                         >
-                          <FaCheck /> Approve
+                          <FaCheck /> {t('leaveApproval.actions.approve')}
                         </button>
                         <button
                           className={`action-button reject ${leave.isApproved === false ? 'rejected' : ''}`}
                           onClick={() => handleReject(leave.id)}
                           disabled={leave.isApproved === false}
                         >
-                          <FaTimes /> Reject
+                          <FaTimes /> {t('leaveApproval.actions.reject')}
                         </button>
                         <button
                           className="icon-button delete"
@@ -714,11 +714,11 @@ useEffect(() => {
             letterSpacing: 0.5
           }}
         >
-          Confirm Deletion
+          {t('leaveApproval.confirmDelete.title')}
         </DialogTitle>
         <DialogContent style={{paddingTop: 10, paddingBottom: 6}}>
           <div style={{fontSize: 18, marginBottom: 8, fontWeight: 500}}>
-            Are you sure you want to delete this leave request?
+            {t('leaveApproval.confirmDelete.message')}
           </div>
           <div style={{color:'#f87171', fontWeight:700, fontSize:18, marginTop:6}}>
             {(() => {
@@ -726,12 +726,12 @@ useEffect(() => {
               if (!leave) return null;
               return (
                 <>
-                  Employee: {leave.employeeName}<br/>
+                  {t('leaveApproval.tableHeaders.employeeName')}: {leave.employeeName}<br/>
                   {leave.startDate && leave.endDate && (
-                    <>Dates: {leave.startDate} to {leave.endDate}<br/></>
+                    <>{t('leaveApproval.tableHeaders.fromDate')} - {t('leaveApproval.tableHeaders.toDate')}: {leave.startDate} to {leave.endDate}<br/></>
                   )}
                   {leave.reason && (
-                    <>Reason: {leave.reason}</>
+                    <>{t('leaveApproval.tableHeaders.reason')}: {leave.reason}</>
                   )}
                 </>
               );
@@ -753,7 +753,7 @@ useEffect(() => {
               letterSpacing: 0.5
             }}
           >
-            CANCEL
+            {t('leaveApproval.confirmDelete.cancel')}
           </Button>
           <Button
             onClick={handleConfirmDelete}
@@ -768,7 +768,7 @@ useEffect(() => {
               letterSpacing: 0.5
             }}
           >
-            YES, DELETE
+            {t('leaveApproval.confirmDelete.delete')}
           </Button>
         </DialogActions>
       </Dialog>
