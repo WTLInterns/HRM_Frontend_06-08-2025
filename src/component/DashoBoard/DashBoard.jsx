@@ -109,7 +109,7 @@ const Dashboard = () => {
 
       try {
         const response = await axios.get(`${BACKEND_URL}/api/subadmin/status/${user.id}`);
-        const currentStatus = response.data.status?.toLowerCase();
+        const currentStatus = response.data.status?.toLowerCase() || "";
 
         if (currentStatus === "inactive") {
           console.log("User status is inactive, initiating logout");
@@ -271,8 +271,8 @@ const Dashboard = () => {
     const calculateStats = () => {
       try {
         setLoading(true);
-        const activeEmployees = emp.filter((employee) => employee.status.toLowerCase() === "active");
-        const inactiveEmployees = emp.filter((employee) => employee.status.toLowerCase() === "inactive");
+        const activeEmployees = emp.filter((employee) => employee.status?.toLowerCase() === "active");
+        const inactiveEmployees = emp.filter((employee) => employee.status?.toLowerCase() === "inactive");
         const activeSalary = activeEmployees.reduce((sum, emp) => sum + (emp.salary || 0), 0);
         const inactiveSalary = inactiveEmployees.reduce((sum, emp) => sum + (emp.salary || 0), 0);
         const totalSalary = activeSalary + inactiveSalary;
@@ -416,7 +416,7 @@ const Dashboard = () => {
   const jobRoleSummary = emp.reduce((acc, employee) => {
     const role = employee.jobRole || t('dashboardExtended.jobRoles.unassigned');
     if (!acc[role]) acc[role] = { active: 0, inactive: 0 };
-    if (employee.status.toLowerCase() === "active") acc[role].active += 1;
+    if (employee.status?.toLowerCase() === "active") acc[role].active += 1;
     else acc[role].inactive += 1;
     return acc;
   }, {});

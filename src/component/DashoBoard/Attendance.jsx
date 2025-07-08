@@ -19,6 +19,13 @@ export default function Attendance() {
   const [pendingDate, setPendingDate] = useState(null);
   const [reasonInput, setReasonInput] = useState("");
   const [reasonError, setReasonError] = useState("");
+
+  // Time selection states
+  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [timeModalType, setTimeModalType] = useState(null); // 'punchIn', 'punchOut', 'lunchIn', 'lunchOut'
+  const [selectedTime, setSelectedTime] = useState("");
+  const [timeError, setTimeError] = useState("");
+  const [currentTimeRecord, setCurrentTimeRecord] = useState(null);
   // Component States
   const [employeeName, setEmployeeName] = useState("");
   const [selectedDates, setSelectedDates] = useState([]);
@@ -181,6 +188,202 @@ export default function Attendance() {
   };
 
 
+  // Handle time selection
+  const handleTimeSelect = (timeType) => {
+    if (!employeeName || employeeName.trim() === '' || !selectedEmpId) {
+      toast.error(t('attendanceManagement.enterEmployeeNameFirst'), {
+        duration: 3000,
+        style: {
+          background: '#FF5555',
+          color: '#fff',
+          fontWeight: 'bold',
+          padding: '16px',
+          borderRadius: '10px',
+        },
+        icon: '🚫',
+      });
+      setShowStatusDropdown(false);
+      return;
+    }
+
+    // Find existing record for this date
+    const existingRecord = attendanceRecords.find(record => {
+      const recordDate = new Date(record.date);
+      recordDate.setHours(12, 0, 0, 0);
+      const clicked = new Date(selectedDate);
+      clicked.setHours(12, 0, 0, 0);
+      return recordDate.getTime() === clicked.getTime();
+    });
+
+    setCurrentTimeRecord(existingRecord);
+    setTimeModalType(timeType);
+    setSelectedTime("");
+    setTimeError("");
+    setShowStatusDropdown(false);
+    setShowTimeModal(true);
+  };
+
+  // Handle time submission
+  const handleTimeSubmit = async () => {
+    if (!selectedTime || selectedTime.trim() === "") {
+      setTimeError("Please select a time");
+      return;
+    }
+
+    // Validate time format (HH:mm)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(selectedTime)) {
+      setTimeError("Please enter time in HH:mm format (24-hour)");
+      return;
+    }
+
+    try {
+      // Get the clicked date and convert to API format
+      const clickedDate = new Date(selectedDate);
+      clickedDate.setHours(12, 0, 0, 0);
+      const apiFormattedDate = formatDateForApi(clickedDate);
+      const formattedDateForDisplay = formatDate(clickedDate);
+
+      // Get subadmin ID from localStorage
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const subAdminId = storedUser?.subAdminId || storedUser?.id || 2;
+
+      // Check if attendance exists for this date
+      const existingAttendance = await checkExistingAttendance(selectedEmpId, apiFormattedDate);
+
+      // Prepare payload with time field
+      const attendancePayload = [{
+        date: apiFormattedDate,
+        status: currentTimeRecord?.status || "Present",
+        reason: currentTimeRecord?.reason || "",
+        [timeModalType + "Time"]: selectedTime // e.g., punchInTime, punchOutTime
+      }];
+
+      // Include existing time fields to avoid overwriting them
+      if (currentTimeRecord) {
+        if (timeModalType !== 'punchIn' && currentTimeRecord.punchInTime) {
+          attendancePayload[0].punchInTime = currentTimeRecord.punchInTime;
+        }
+        if (timeModalType !== 'punchOut' && currentTimeRecord.punchOutTime) {
+          attendancePayload[0].punchOutTime = currentTimeRecord.punchOutTime;
+        }
+        if (timeModalType !== 'lunchIn' && currentTimeRecord.lunchInTime) {
+          attendancePayload[0].lunchInTime = currentTimeRecord.lunchInTime;
+        }
+        if (timeModalType !== 'lunchOut' && currentTimeRecord.lunchOutTime) {
+          attendancePayload[0].lunchOutTime = currentTimeRecord.lunchOutTime;
+        }
+      }
+
+      let response;
+      let updateUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
+
+      if (existingAttendance && existingAttendance.length > 0) {
+        // Attendance exists, use PUT to update
+        attendancePayload[0].id = existingAttendance[0].id;
+
+        response = await axios.put(
+          updateUrl,
+          attendancePayload,
+          {
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+
+        toast.success(`✅ Updated ${timeModalType?.replace(/([A-Z])/g, ' $1')?.toLowerCase() || 'time'} time to ${selectedTime} for ${formattedDateForDisplay}`, {
+          duration: 3000,
+          style: {
+            background: '#2ecc71',
+            color: '#fff',
+            fontWeight: 'bold',
+            padding: '16px',
+            borderRadius: '10px',
+          },
+          icon: '⏰',
+        });
+      } else {
+        // No attendance record exists, use POST to create
+        response = await axios.post(
+          addUrl,
+          attendancePayload,
+          {
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+
+        toast.success(`✅ Created attendance with ${timeModalType?.replace(/([A-Z])/g, ' $1')?.toLowerCase() || 'time'} time ${selectedTime} for ${formattedDateForDisplay}`, {
+          duration: 3000,
+          style: {
+            background: '#2ecc71',
+            color: '#fff',
+            fontWeight: 'bold',
+            padding: '16px',
+            borderRadius: '10px',
+          },
+          icon: '⏰',
+        });
+      }
+
+      // Update local state
+      const updatedRecord = response.data[0];
+      setAttendanceRecords(prev => {
+        const existingIndex = prev.findIndex(record => {
+          const recordDate = new Date(record.date);
+          recordDate.setHours(12, 0, 0, 0);
+          const clicked = new Date(selectedDate);
+          clicked.setHours(12, 0, 0, 0);
+          return recordDate.getTime() === clicked.getTime();
+        });
+
+        if (existingIndex >= 0) {
+          // Update existing record
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            [timeModalType + "Time"]: selectedTime,
+            id: updatedRecord.id
+          };
+          return updated;
+        } else {
+          // Add new record
+          setSelectedDates(prevDates => {
+            if (prevDates.find(d => {
+              const prevDate = new Date(d);
+              prevDate.setHours(12, 0, 0, 0);
+              const clicked = new Date(selectedDate);
+              clicked.setHours(12, 0, 0, 0);
+              return prevDate.getTime() === clicked.getTime();
+            })) {
+              return prevDates;
+            }
+            return [...prevDates, selectedDate];
+          });
+
+          return [...prev, {
+            date: selectedDate,
+            status: "Present",
+            employeeName,
+            id: updatedRecord.id,
+            [timeModalType + "Time"]: selectedTime
+          }];
+        }
+      });
+
+      setShowTimeModal(false);
+      setSelectedTime("");
+      setTimeError("");
+      setCurrentTimeRecord(null);
+      setTimeModalType(null);
+
+    } catch (error) {
+      console.error('Error updating time:', error);
+      const errorMessage = error.response?.data || error.message;
+      toast.error(`Failed to update time: ${errorMessage}`);
+      setTimeError("Failed to update time. Please try again.");
+    }
+  };
+
   // Handle status selection with reason (for both normal and modal)
   const handleStatusWithReason = async (status, reason) => {
     if (!employeeName || employeeName.trim() === '' || !selectedEmpId) {
@@ -218,12 +421,29 @@ export default function Attendance() {
       // First check if attendance exists for this date
       const existingAttendance = await checkExistingAttendance(selectedEmpId, apiFormattedDate);
       
+      // Find existing record to preserve time fields
+      const existingRecord = attendanceRecords.find(record => {
+        const recordDate = new Date(record.date);
+        recordDate.setHours(12, 0, 0, 0);
+        const clicked = new Date(selectedDate);
+        clicked.setHours(12, 0, 0, 0);
+        return recordDate.getTime() === clicked.getTime();
+      });
+
       // Prepare payload
       const attendancePayload = [{
         date: apiFormattedDate,
         status: status,
         reason: reason || ""
       }];
+
+      // Include existing time fields if they exist
+      if (existingRecord) {
+        if (existingRecord.punchInTime) attendancePayload[0].punchInTime = existingRecord.punchInTime;
+        if (existingRecord.punchOutTime) attendancePayload[0].punchOutTime = existingRecord.punchOutTime;
+        if (existingRecord.lunchInTime) attendancePayload[0].lunchInTime = existingRecord.lunchInTime;
+        if (existingRecord.lunchOutTime) attendancePayload[0].lunchOutTime = existingRecord.lunchOutTime;
+      }
       
       console.log('Initial payload:', attendancePayload);
       
@@ -289,16 +509,25 @@ export default function Attendance() {
         
         if (recordToUpdate) {
           console.log('Found record to update in state:', recordToUpdate);
-          setAttendanceRecords(prev => 
+          setAttendanceRecords(prev =>
             prev.map(record => {
               const recordDate = new Date(record.date);
               recordDate.setHours(12, 0, 0, 0);
               const clicked = new Date(selectedDate);
               clicked.setHours(12, 0, 0, 0);
-              
+
               if (recordDate.getTime() === clicked.getTime()) {
-                console.log('Updating record state:', { ...record, status });
-                return { ...record, status };
+                console.log('Updating record state:', { ...record, status, reason: reason || record.reason });
+                return {
+                  ...record,
+                  status,
+                  reason: reason || record.reason,
+                  // Preserve existing time fields
+                  punchInTime: record.punchInTime,
+                  punchOutTime: record.punchOutTime,
+                  lunchInTime: record.lunchInTime,
+                  lunchOutTime: record.lunchOutTime
+                };
               }
               return record;
             })
@@ -372,7 +601,12 @@ export default function Attendance() {
               status,
               employeeName,
               id: newRecord.id,
-              reason: reason || ""
+              reason: reason || "",
+              // Include time fields from the response if they exist
+              punchInTime: newRecord.punchInTime,
+              punchOutTime: newRecord.punchOutTime,
+              lunchInTime: newRecord.lunchInTime,
+              lunchOutTime: newRecord.lunchOutTime
             }
           ]);
         }
@@ -477,15 +711,42 @@ export default function Attendance() {
         // NOTE: withCredentials removed to avoid CORS conflict.
       };
 
+      // Check if we have any records that need bulk processing
+      // Records created via time selection already have IDs and are saved to database
+      // Only process records that don't have IDs (new status-only records) or records with status changes
+
       // Separate records into new (without id) and updated (with id) records.
       let newRecords = updatedRecords.filter(record => record.id === undefined);
-      const updateRecords = updatedRecords.filter(record => record.id !== undefined);
+      let updateRecords = updatedRecords.filter(record => record.id !== undefined);
+
+      // For update records, only include those that have meaningful changes beyond just time data
+      updateRecords = updateRecords.filter(record => {
+        // If record has a status other than "Present" or has a reason, it needs to be updated
+        return record.status !== "Present" || (record.reason && record.reason.trim() !== "");
+      });
 
       // Ensure newRecords do not have an id.
       newRecords = newRecords.map(({ id, ...rest }) => rest);
 
       console.log("Payload for add bulk:", newRecords);
       console.log("Payload for update bulk:", updateRecords);
+
+      // Check if there are any records to process
+      if (newRecords.length === 0 && updateRecords.length === 0) {
+        toast.success("All attendance records are already saved!", {
+          duration: 3000,
+          style: {
+            background: '#2ecc71',
+            color: '#fff',
+            fontWeight: 'bold',
+            padding: '16px',
+            borderRadius: '10px',
+          },
+          icon: '✅',
+        });
+        setSubmitting(false);
+        return;
+      }
 
       const promises = [];
       // Use full backend URL.
@@ -605,9 +866,13 @@ export default function Attendance() {
       const dateStr = tileDate.toISOString().split("T")[0];
       const record = attendanceRecords.find(r => r.date === dateStr);
       if (record) {
+        const hasTimeData = record.punchInTime || record.punchOutTime || record.lunchInTime || record.lunchOutTime;
         return (
-          <div className={`w-full h-full p-1 ${statusColors[record.status]}`}>
+          <div className={`w-full h-full p-1 ${statusColors[record.status]} relative`}>
             <div className="text-xs font-bold">{record.status}</div>
+            {hasTimeData && (
+              <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full" title="Has time data"></div>
+            )}
           </div>
         );
       }
@@ -684,26 +949,69 @@ export default function Attendance() {
                     top: `${dropdownPosition.y}px`,
                     left: `${dropdownPosition.x}px`,
                     transform: "translate(-50%, -50%)",
-                    width: "180px"
+                    width: "220px"
                   }}
                 >
                   <div className={`p-2 ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-700'} border-b text-center font-medium`}>
                     {formatDate(selectedDate)}
                   </div>
-                  {statusOptions.map(status => (
-                    <button
-                      key={status.key}
-                      type="button"
-                      className={`block w-full text-left px-4 py-2 ${isDarkMode ? 'hover:bg-slate-600 text-gray-100' : 'hover:bg-gray-100 text-gray-800'} ${
-                        attendanceRecords.find(r => r.date === selectedDate)?.status === status.key
-                          ? isDarkMode ? "bg-blue-600" : "bg-blue-500"
-                          : ""
-                      }`}
-                      onClick={() => handleStatusSelect(status.key)}
-                    >
-                      {status.label}
-                    </button>
-                  ))}
+
+                  {/* Status Options */}
+                  <div className="max-h-48 overflow-y-auto">
+                    {statusOptions.map(status => (
+                      <button
+                        key={status.key}
+                        type="button"
+                        className={`block w-full text-left px-4 py-2 ${isDarkMode ? 'hover:bg-slate-600 text-gray-100' : 'hover:bg-gray-100 text-gray-800'} ${
+                          attendanceRecords.find(r => r.date === selectedDate)?.status === status.key
+                            ? isDarkMode ? "bg-blue-600" : "bg-blue-500"
+                            : ""
+                        }`}
+                        onClick={() => handleStatusSelect(status.key)}
+                      >
+                        {status.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Time Selection Section */}
+                  <div className={`p-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} border-t`}>
+                    <div className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      Time Management
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleTimeSelect('punchIn')}
+                        className={`text-xs py-1 px-2 rounded ${isDarkMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-400 text-white'} transition`}
+                      >
+                        Punch In
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTimeSelect('punchOut')}
+                        className={`text-xs py-1 px-2 rounded ${isDarkMode ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-red-500 hover:bg-red-400 text-white'} transition`}
+                      >
+                        Punch Out
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTimeSelect('lunchOut')}
+                        className={`text-xs py-1 px-2 rounded ${isDarkMode ? 'bg-orange-600 hover:bg-orange-500 text-white' : 'bg-orange-500 hover:bg-orange-400 text-white'} transition`}
+                      >
+                        Lunch Out
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTimeSelect('lunchIn')}
+                        className={`text-xs py-1 px-2 rounded ${isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-400 text-white'} transition`}
+                      >
+                        Lunch In
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cancel Button */}
                   <div className={`p-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} border-t`}>
                     <button
                       type="button"
@@ -753,6 +1061,33 @@ export default function Attendance() {
                               <span className="ml-2 italic text-yellow-600">{t('attendance.reason')}: {record.reason}</span>
                             )}
                           </div>
+                          {/* Display time information */}
+                          {(record.punchInTime || record.punchOutTime || record.lunchInTime || record.lunchOutTime) && (
+                            <div className={`text-xs mt-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                              <div className="flex flex-wrap gap-2">
+                                {record.punchInTime && (
+                                  <span className={`px-1 rounded text-xs ${isDarkMode ? 'bg-green-800 text-green-200' : 'bg-green-100 text-green-800'}`}>
+                                    In: {record.punchInTime}
+                                  </span>
+                                )}
+                                {record.punchOutTime && (
+                                  <span className={`px-1 rounded text-xs ${isDarkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-800'}`}>
+                                    Out: {record.punchOutTime}
+                                  </span>
+                                )}
+                                {record.lunchOutTime && (
+                                  <span className={`px-1 rounded text-xs ${isDarkMode ? 'bg-orange-800 text-orange-200' : 'bg-orange-100 text-orange-800'}`}>
+                                    L-Out: {record.lunchOutTime}
+                                  </span>
+                                )}
+                                {record.lunchInTime && (
+                                  <span className={`px-1 rounded text-xs ${isDarkMode ? 'bg-blue-800 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
+                                    L-In: {record.lunchInTime}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <button
                           onClick={() => handleRemoveDate(record.date)}
@@ -835,6 +1170,74 @@ export default function Attendance() {
               }}
             >
               Save
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Time Selection Modal */}
+    {showTimeModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className={`p-6 rounded-lg shadow-lg w-full max-w-md ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'}`}>
+          <h2 className="text-lg font-bold mb-4">
+            Set {timeModalType === 'punchIn' ? 'Punch In' :
+                 timeModalType === 'punchOut' ? 'Punch Out' :
+                 timeModalType === 'lunchIn' ? 'Lunch In' : 'Lunch Out'} Time
+          </h2>
+          <div className="mb-4">
+            <label className="block mb-2 font-medium">
+              Select time for {formatDate(selectedDate)}:
+            </label>
+            <input
+              type="time"
+              className={`w-full p-3 rounded border text-lg ${isDarkMode ? 'bg-slate-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'}`}
+              value={selectedTime}
+              onChange={e => setSelectedTime(e.target.value)}
+              autoFocus
+              step="60" // Only allow minute precision
+            />
+            {timeError && <div className="text-red-500 text-sm mt-1">{timeError}</div>}
+
+            {/* Show current times if they exist */}
+            {currentTimeRecord && (
+              <div className={`mt-3 p-3 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
+                <div className="text-sm font-medium mb-2">Current Times:</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {currentTimeRecord.punchInTime && (
+                    <div>Punch In: <span className="font-mono">{currentTimeRecord.punchInTime}</span></div>
+                  )}
+                  {currentTimeRecord.punchOutTime && (
+                    <div>Punch Out: <span className="font-mono">{currentTimeRecord.punchOutTime}</span></div>
+                  )}
+                  {currentTimeRecord.lunchOutTime && (
+                    <div>Lunch Out: <span className="font-mono">{currentTimeRecord.lunchOutTime}</span></div>
+                  )}
+                  {currentTimeRecord.lunchInTime && (
+                    <div>Lunch In: <span className="font-mono">{currentTimeRecord.lunchInTime}</span></div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              className={`px-4 py-2 rounded ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-800'}`}
+              onClick={() => {
+                setShowTimeModal(false);
+                setSelectedTime("");
+                setTimeError("");
+                setCurrentTimeRecord(null);
+                setTimeModalType(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${isDarkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-400 text-white'}`}
+              onClick={handleTimeSubmit}
+            >
+              Save Time
             </button>
           </div>
         </div>
