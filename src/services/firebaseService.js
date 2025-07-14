@@ -1,5 +1,5 @@
 import { getToken, onMessage } from "firebase/messaging";
-import { messaging } from "../firebase/firebaseconfig";
+import { messaging } from "../firebase/firebaseConfig";
 
 
 class FirebaseService {
