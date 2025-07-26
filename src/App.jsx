@@ -60,24 +60,26 @@ const ThemeWrapper = ({ children }) => {
   }, [isDarkMode]);
 
   useEffect(() => {
-    // Dismiss all toasts on route change to prevent cross-page messages
-    if (window.toastify) {
-      window.toastify.dismiss();
+    // Only dismiss toasts when actually changing to a different page
+    // Don't dismiss on same page operations (like adding/updating employees)
+    const currentPath = location.pathname;
+    const previousPath = sessionStorage.getItem('previousPath');
+
+    if (previousPath && previousPath !== currentPath) {
+      // Dismiss all toasts only on actual route change
+      if (window.toastify) {
+        window.toastify.dismiss();
+      }
+      if (window.ReactToastify) {
+        window.ReactToastify.toast.dismiss();
+      }
+      if (window.toast) {
+        window.toast.dismiss && window.toast.dismiss();
+      }
     }
-    if (window.ReactToastify) {
-      window.ReactToastify.toast.dismiss();
-    }
-    if (window.toast) {
-      window.toast.dismiss && window.toast.dismiss();
-    }
-    if (typeof window !== 'undefined' && window.document) {
-      const containers = document.querySelectorAll('.Toastify__toast-container');
-      containers.forEach(container => {
-        if (container && container.parentNode) {
-          container.parentNode.removeChild(container);
-        }
-      });
-    }
+
+    // Store current path for next comparison
+    sessionStorage.setItem('previousPath', currentPath);
   }, [location]);
 
   useEffect(() => {
@@ -111,7 +113,19 @@ const ThemeWrapper = ({ children }) => {
   return (
     <div className={isDarkMode ? 'dark-mode' : 'light-mode'}>
       {children}
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        style={{ zIndex: 9999 }}
+      />
     </div>
   );
 };

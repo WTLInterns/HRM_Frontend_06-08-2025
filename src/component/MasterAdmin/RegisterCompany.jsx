@@ -48,6 +48,7 @@ const RegisterCompany = () => {
     packageType: "10",
     customCount: "",
     emailServerPassword: "", // Added new field
+    deviceSerialNumber: "", // Device serial number for biometric mapping
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -99,6 +100,7 @@ const RegisterCompany = () => {
           packageType: normalizePackageType(companyToEdit.packageType),
           customCount: normalizePackageType(companyToEdit.packageType) === "custom" ? (companyToEdit.packageCount || "") : "",
           emailServerPassword: companyToEdit.emailServerPassword || "", // Added new field
+          deviceSerialNumber: companyToEdit.deviceSerialNumber || "", // Device serial number
         };
         console.log("Loading company data for edit:", mappedData);
         setFormData(mappedData);
@@ -160,6 +162,7 @@ const RegisterCompany = () => {
         formDataToSend.append("companyurl", formData.companyUrl);
         formDataToSend.append("address", formData.address || "");
         formDataToSend.append("emailServerPassword", formData.emailServerPassword); // Added new field
+        formDataToSend.append("deviceSerialNumber", formData.deviceSerialNumber || ""); // Device serial number
         if (formData.logo) formDataToSend.append("companylogo", formData.logo);
         if (formData.signature) formDataToSend.append("signature", formData.signature);
         if (formData.stampImage) formDataToSend.append("stampImg", formData.stampImage);
@@ -212,6 +215,7 @@ const RegisterCompany = () => {
         if (formData.signature) formDataToSend.append("signature", formData.signature);
         if (formData.stampImage) formDataToSend.append("stampImg", formData.stampImage);
         formDataToSend.append("emailServerPassword", formData.emailServerPassword); // Added new field
+        formDataToSend.append("deviceSerialNumber", formData.deviceSerialNumber || ""); // Device serial number
 
         const response = await fetch(apiUrl, {
           method: "POST",
@@ -542,6 +546,25 @@ const RegisterCompany = () => {
                   required
                   className="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-100"
                   placeholder="Enter email server password"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="deviceSerialNumber" className="block text-sm font-medium">
+                Device Serial Number
+              </label>
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaBuilding className="text-blue-400" />
+                </div>
+                <input
+                  type="text"
+                  id="deviceSerialNumber"
+                  name="deviceSerialNumber"
+                  value={formData.deviceSerialNumber}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-100"
+                  placeholder="Enter biometric device serial number"
                 />
               </div>
             </div>

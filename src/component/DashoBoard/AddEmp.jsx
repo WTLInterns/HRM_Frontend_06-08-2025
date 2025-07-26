@@ -319,7 +319,10 @@ export default function AddEmp() {
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
       formData.append("email", email);
-      formData.append("phone", phone);
+      // Ensure phone is properly formatted as string
+      if (phone && phone !== null && phone !== "") {
+        formData.append("phone", phone.toString());
+      }
       formData.append("aadharNo", aadharNo);
       formData.append("panCard", panCard);
       formData.append("education", education);
@@ -334,7 +337,10 @@ export default function AddEmp() {
       formData.append("bankAccountNo", bankAccountNo);
       formData.append("bankIfscCode", bankIfscCode);
       formData.append("branchName", branchName);
-      formData.append("salary", salary);
+      // Only append salary if it has a valid value
+      if (salary && salary !== null && salary !== "") {
+        formData.append("salary", salary);
+      }
       formData.append("department", department);
       // Always send password: if not changed, use original; if changed, use new; never omit
       if (password && password.trim() !== "") {
@@ -415,7 +421,10 @@ export default function AddEmp() {
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
       formData.append("email", email);
-      formData.append("phone", phone);
+      // Ensure phone is properly formatted as string
+      if (phone && phone !== null && phone !== "") {
+        formData.append("phone", phone.toString());
+      }
       formData.append("aadharNo", aadharNo);
       formData.append("panCard", panCard);
       formData.append("education", education);
@@ -430,7 +439,10 @@ export default function AddEmp() {
       formData.append("bankAccountNo", bankAccountNo);
       formData.append("bankIfscCode", bankIfscCode);
       formData.append("branchName", branchName);
-      formData.append("salary", salary);
+      // Only append salary if it has a valid value
+      if (salary && salary !== null && salary !== "") {
+        formData.append("salary", salary);
+      }
       formData.append("department", department);
       // Always send password: if not changed, use original; if changed, use new; never omit
       if (password && password.trim() !== "") {
@@ -488,9 +500,6 @@ export default function AddEmp() {
       `${API_URL}/api/employee/${subadminId}/employee/all`
     );
     setEmployees(refreshResponse.data);
-
-    // Show success message with back button
-    toast.success(t('messages.employeeUpdatedSuccessfully'));
 
     // Dispatch event to notify Dashboard of employee updates
     window.dispatchEvent(new Event("employeesUpdated"));
@@ -556,10 +565,29 @@ const confirmedDeleteEmp = async (empId) => {
     window.dispatchEvent(new Event("employeesUpdated"));
     setConfirmDialog({ open: false, type: '', empId: null });
   } catch (err) {
-    toast.error(
-      "Failed to delete employee: " + (err.response?.data || err.message)
-    );
-    console.error(err);
+    console.error("=== DELETE EMPLOYEE ERROR ===");
+    console.error("Full error object:", err);
+    console.error("Error response:", err.response);
+    console.error("Error response data:", err.response?.data);
+    console.error("Error message:", err.message);
+
+    let errorMessage = "Failed to delete employee";
+
+    if (err.response?.data) {
+      if (typeof err.response.data === 'string') {
+        errorMessage = err.response.data;
+      } else if (err.response.data.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response.data.error) {
+        errorMessage = err.response.data.error;
+      } else {
+        errorMessage = "Failed to delete employee: " + JSON.stringify(err.response.data);
+      }
+    } else if (err.message) {
+      errorMessage = "Failed to delete employee: " + err.message;
+    }
+
+    toast.error(errorMessage);
     setConfirmDialog({ open: false, type: '', empId: null });
   }
 };
@@ -2599,6 +2627,7 @@ const handleEditEmp = (employee) => {
           </div>
         </div>
       )}
+
     </div>
   );
 }
