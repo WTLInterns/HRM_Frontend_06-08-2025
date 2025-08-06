@@ -197,7 +197,6 @@ const PostAppraisal = () => {
       const pdfBlob = pdf.output('blob');
       const formDataToSend = new FormData();
       formDataToSend.append('file', pdfBlob, 'PostAppraisalCertificate.pdf');
-      Object.entries(formData).forEach(([key, value]) => formDataToSend.append(key, value));
       const apiUrl = `https://api.managifyhr.com/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/postappraisal`;
       await axios.post(apiUrl, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Certificate sent successfully!');

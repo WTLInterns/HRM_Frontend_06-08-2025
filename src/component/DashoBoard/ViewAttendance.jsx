@@ -27,6 +27,29 @@ export default function ViewAttendance() {
   const [tooltipContent, setTooltipContent] = useState({});
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { isDarkMode } = useApp();
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+
+  const handleDownloadAll = async (month) => {
+    if (!loggedUser?.id) {
+      toast.error(t('attendanceManagement.noSubadminFound'));
+      return;
+    }
+    try {
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/${loggedUser.id}/attendance/download?month=${month}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `attendance_${month}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error downloading attendance report:', error);
+      toast.error(t('attendanceManagement.failedToDownloadReport'));
+    }
+  };
 
   // Fetch logged-in subadmin and employee list
   useEffect(() => {
@@ -239,6 +262,12 @@ const tileContent = ({ date, view }) => {
               <><FaUserCheck /> {t('attendanceManagement.viewAttendanceTitle')}</>
             )}
           </button>
+          <button
+            onClick={() => setShowMonthPicker(true)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all duration-200 ${isDarkMode ? 'bg-green-700 text-white hover:bg-green-800' : 'bg-green-500 text-white hover:bg-green-600'}`}
+          >
+            <FaDownload /> {t('attendanceManagement.downloadAll')}
+          </button>
           {attendanceData.length > 0 && (
             <button
               onClick={clearAttendance}
@@ -251,24 +280,26 @@ const tileContent = ({ date, view }) => {
       {loading ? (
         <div className={`text-center py-8 ${isDarkMode ? "text-gray-300" : "text-gray-500"}`}>{t('attendanceManagement.loadingAttendance')}</div>
       ) : attendanceData.length > 0 ? (
-        <div className={`${isDarkMode ? "bg-slate-800 border-blue-900" : "bg-blue-50 border-blue-200"} p-6 rounded-lg shadow-lg border animate-slideIn`}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-2xl font-semibold flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
-              <FaCalendarAlt className={isDarkMode ? "text-blue-400" : "text-blue-600"} /> {t('attendanceManagement.attendanceFor', { name: empName })}
-            </h2>
-            {attendanceData.length > 0 && (
-              <button
-                onClick={() => {
-                  // Use filteredAttendanceData for the current month/year
-                  let empObj = employeeList.find(e => e.empId === selectedEmpId);
-                  if (!empObj) empObj = employeeList[0] || {};
-                  exportAttendanceToExcel(filteredAttendanceData, empObj);
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all duration-200 ${isDarkMode ? 'bg-blue-700 text-white hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-              >
-                <FaDownload /> {t('attendanceManagement.exportToExcel')}
-              </button>
-            )}
+        <React.Fragment>
+          <div className={`${isDarkMode ? "bg-slate-800 border-blue-900" : "bg-blue-50 border-blue-200"} p-6 rounded-lg shadow-lg border animate-slideIn`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-2xl font-semibold flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
+                <FaCalendarAlt className={isDarkMode ? "text-blue-400" : "text-blue-600"} /> {t('attendanceManagement.attendanceFor', { name: empName })}
+              </h2>
+              {attendanceData.length > 0 && (
+                <button
+                  onClick={() => {
+                    // Use filteredAttendanceData for the current month/year
+                    let empObj = employeeList.find(e => e.empId === selectedEmpId);
+                    if (!empObj) empObj = employeeList[0] || {};
+                    exportAttendanceToExcel(filteredAttendanceData, empObj);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all duration-200 ${isDarkMode ? 'bg-blue-700 text-white hover:bg-blue-800' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  <FaDownload /> {t('attendanceManagement.exportToExcel')}
+                </button>
+              )}
+            </div>
           </div>
           <Calendar
             value={null}
@@ -304,8 +335,31 @@ const tileContent = ({ date, view }) => {
               </div>
             </div>
           )}
-        </div>
+        </React.Fragment>
       ) : null}
+
+      {showMonthPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className={`rounded-lg shadow-lg border w-full max-w-md p-6 ${isDarkMode ? "bg-slate-800 border-blue-900 text-gray-100" : "bg-white border-blue-300 text-gray-900"}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-lg font-semibold flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}>
+                <FaCalendarAlt className={`${isDarkMode ? "text-blue-400" : "text-blue-600"}`} /> {t('attendanceManagement.selectMonth')}
+              </h3>
+              <button onClick={() => setShowMonthPicker(false)} className="text-xl font-bold hover:text-red-500 transition-colors duration-200">&times;</button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <input
+                type="month"
+                className={`w-full p-2 rounded-lg ${isDarkMode ? "bg-slate-700 border-gray-700 text-gray-100" : "bg-white border-gray-300 text-gray-900"}`}
+                onChange={(e) => {
+                  handleDownloadAll(e.target.value);
+                  setShowMonthPicker(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

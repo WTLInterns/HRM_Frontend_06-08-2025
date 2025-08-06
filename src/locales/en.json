@@ -719,7 +719,10 @@
     "accessDenied": "Access denied. Please check your login credentials or permissions.",
     "unauthorized": "Unauthorized. Please log in again.",
     "serverError": "Server error:",
-    "days": "days"
+    "days": "days",
+    "downloadAll": "Download All",
+    "selectMonth": "Select Month",
+    "failedToDownloadReport": "Failed to download attendance report"
   },
   "checkImages": {
     "title": "Check Attendance Images",

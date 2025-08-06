@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaBell, FaTimes, FaUser, FaFileAlt, FaBriefcase, FaCalendarAlt, FaSync } from 'react-icons/fa';
+import { FaBell, FaTimes, FaUser, FaFileAlt, FaBriefcase, FaCalendarAlt, FaSync, FaTrash } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import firebaseService from '../services/firebaseService';
 import './NotificationBell.css';
 
@@ -9,6 +10,8 @@ const NotificationBell = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   // Get user data
   const getUserData = () => {
@@ -301,9 +304,170 @@ const NotificationBell = () => {
         setNotifications(prev =>
           prev.map(n => ({...n, isRead: true}))
         );
+
+        // Show success toast
+        toast.success('✅ All notifications marked as read!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     } catch (error) {
       console.error('❌ Error marking all as read:', error);
+      toast.error('Failed to mark all notifications as read. Please try again.', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  };
+
+  // Delete notification
+  const handleDeleteNotification = async (notificationId, event) => {
+    // Prevent triggering the notification click event
+    event.stopPropagation();
+
+    // Set loading state for this specific notification
+    setDeletingId(notificationId);
+
+    try {
+      console.log('🗑️ Deleting notification with ID:', notificationId);
+
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${notificationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Notification deleted successfully:', result);
+
+        // Find the notification to check if it was unread
+        const deletedNotification = notifications.find(n => n.id === notificationId);
+
+        // Update local state - remove the notification from the list
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+
+        // Update unread count if the deleted notification was unread
+        if (deletedNotification && !deletedNotification.isRead) {
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+
+        // Show success toast message
+        toast.success('🗑️ Notification deleted successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+      } else {
+        console.error('❌ Failed to delete notification:', result.error);
+        toast.error('Failed to delete notification: ' + result.error, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error deleting notification:', error);
+      toast.error('Error deleting notification. Please try again.', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      // Clear loading state
+      setDeletingId(null);
+    }
+  };
+
+  // Delete all notifications
+  const handleDeleteAllNotifications = async () => {
+    if (notifications.length === 0) return;
+
+    // Show confirmation toast
+    const confirmDelete = window.confirm(`Are you sure you want to delete all ${notifications.length} notifications? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    // Set loading state for delete all
+    setDeletingAll(true);
+
+    try {
+      console.log('🗑️ Deleting all notifications');
+
+      const notificationIds = notifications.map(n => n.id);
+
+      const response = await fetch('https://api.managifyhr.com/api/fcm/notifications/batch', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          notificationIds: notificationIds
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ All notifications deleted successfully:', result);
+
+        // Clear all notifications from UI
+        setNotifications([]);
+        setUnreadCount(0);
+
+        // Show success toast message
+        toast.success(`🎉 Successfully deleted ${result.deletedCount} notification${result.deletedCount > 1 ? 's' : ''}!`, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+      } else {
+        console.error('❌ Failed to delete all notifications:', result.error);
+        toast.error('Failed to delete all notifications: ' + result.error, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error deleting all notifications:', error);
+      toast.error('Error deleting all notifications. Please try again.', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      // Clear loading state
+      setDeletingAll(false);
     }
   };
 
@@ -355,6 +519,20 @@ const NotificationBell = () => {
                   Mark All Read
                 </button>
               )}
+              {notifications.length > 0 && (
+                <button
+                  className="notification-delete-all-btn"
+                  onClick={handleDeleteAllNotifications}
+                  disabled={deletingAll}
+                  title={deletingAll ? "Deleting all..." : "Delete all notifications"}
+                >
+                  {deletingAll ? (
+                    <div className="spinner" style={{ width: 14, height: 14 }}></div>
+                  ) : (
+                    <FaTrash size={14} />
+                  )}
+                </button>
+              )}
               <button className="notification-refresh-btn" onClick={handleRefresh} title="Refresh notifications">
                 <FaSync />
               </button>
@@ -380,8 +558,22 @@ const NotificationBell = () => {
                     <div className="notification-title">
                       {getNotificationIcon(notification.notificationType)} {notification.title}
                     </div>
-                    <div className="notification-type-badge">
-                      {getNotificationTypeName(notification.notificationType)}
+                    <div className="notification-actions">
+                      <div className="notification-type-badge">
+                        {getNotificationTypeName(notification.notificationType)}
+                      </div>
+                      <button
+                        className="notification-delete-btn"
+                        onClick={(e) => handleDeleteNotification(notification.id, e)}
+                        disabled={deletingId === notification.id}
+                        title={deletingId === notification.id ? "Deleting..." : "Delete notification"}
+                      >
+                        {deletingId === notification.id ? (
+                          <div className="spinner" style={{ width: 12, height: 12 }}></div>
+                        ) : (
+                          <FaTrash size={12} />
+                        )}
+                      </button>
                     </div>
                   </div>
                   <div className="notification-body">{notification.body}</div>

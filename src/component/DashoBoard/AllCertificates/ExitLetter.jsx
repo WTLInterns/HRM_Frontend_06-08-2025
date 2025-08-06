@@ -232,9 +232,14 @@ const ExitLetter = () => {
   };
 
   const handleSendEmail = async () => {
-    if (!letterRef.current) return;
-    
-    // Check if we have a valid employee selected
+    if (!letterRef.current) {
+      console.error("letterRef is not assigned.");
+      toast.error("An unexpected error occurred. Please try again.");
+      return;
+    }
+
+    const letterContainer = letterRef.current;
+
     if (!selectedEmployee) {
       toast.error('Please select an employee first');
       return;
@@ -247,26 +252,27 @@ const ExitLetter = () => {
     
     toast.info(`Preparing to send email to ${selectedEmployee.email}...`);
     
+    // Store original styles to restore later
+    const originalStyle = letterContainer.style.cssText;
+    const paragraphs = Array.from(letterContainer.querySelectorAll('p'));
+    const originalParagraphStyles = paragraphs.map(p => p.style.cssText);
+    const contentDivs = Array.from(letterContainer.querySelectorAll('div'));
+    const originalDivStyles = contentDivs.map(div => div.style.cssText);
+    const images = Array.from(letterContainer.querySelectorAll('img'));
+    const originalImageStyles = images.map(img => img.style.cssText);
+
     try {
-      // Store original styles to restore later
-      const letterContainer = letterRef.current;
-      const originalStyle = letterContainer.style.cssText;
-      
-      // Temporarily adjust the container to optimize for PDF generation - CRITICAL FOR EMAIL
+      // Temporarily adjust the container to optimize for PDF generation
       letterContainer.style.width = '210mm';
       letterContainer.style.height = 'auto';
-      letterContainer.style.fontSize = '9pt'; // Slightly smaller font for email to ensure fit on one page
-      letterContainer.style.lineHeight = '1.2'; // Tighter line height for email
+      letterContainer.style.fontSize = '9pt';
+      letterContainer.style.lineHeight = '1.2';
       
-      // Optimize spacing for paragraphs to fit on one page
-      const paragraphs = letterContainer.querySelectorAll('p');
       paragraphs.forEach(p => {
         p.style.marginBottom = '0.5em';
         p.style.marginTop = '0.5em';
       });
       
-      // Adjust the spacing of elements to ensure everything fits properly
-      const contentDivs = letterContainer.querySelectorAll('div');
       contentDivs.forEach(div => {
         if (div.classList.contains('mt-16') || div.classList.contains('mt-12') || div.classList.contains('mt-10') || div.classList.contains('mt-6')) {
           div.style.marginTop = '0.75rem';
@@ -274,65 +280,36 @@ const ExitLetter = () => {
         if (div.classList.contains('mt-8')) {
           div.style.marginTop = '0.5rem';
         }
-        // Reduce height of spacer divs
         if (div.classList.contains('h-28')) {
           div.style.height = '1rem';
         }
       });
       
-      // First check and fix any image with missing dimensions
-      const images = letterRef.current.querySelectorAll('img');
-      console.log(`Found ${images.length} images in the letter for email`);
-      
-      // Create array of promises to ensure all images are loaded properly
-      const imagePromises = Array.from(images).map(img => {
+      const imagePromises = images.map(img => {
         return new Promise((resolve) => {
-          // Skip if image is already loaded with valid dimensions
           if (img.complete && img.naturalWidth > 0) {
             img.crossOrigin = 'Anonymous';
-            console.log(`Image already loaded: ${img.src}`);
             return resolve();
           }
-          
-          // Set crossOrigin before setting src
           img.crossOrigin = 'Anonymous';
-          
-          // Add event listeners for load and error
-          img.onload = () => {
-            console.log(`Image loaded: ${img.src}, dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
-            resolve();
-          };
-          
-          img.onerror = (err) => {
-            console.error(`Error loading image: ${img.src}`, err);
-            // Try to set a placeholder instead of failing
+          img.onload = resolve;
+          img.onerror = () => {
             img.src = 'https://via.placeholder.com/150x50?text=Image+Error';
-            // Still resolve to not block the PDF generation
             resolve();
           };
-          
-          // If image src is relative path to profile image, convert to absolute URL
           if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-            const newSrc = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
-            console.log(`Converting relative URL to absolute: ${img.src} -> ${newSrc}`);
-            img.src = newSrc;
+            img.src = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
           } else {
-            // Force reload by setting the same src
             const currentSrc = img.src;
             img.src = currentSrc;
           }
         });
       });
       
-      // Wait for all images to be properly loaded
       await Promise.all(imagePromises);
-      console.log('All images loaded successfully for email');
-      
-      // Wait additional time to ensure everything is rendered
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Set proper constraints on images - optimized for email
-      letterRef.current.querySelectorAll('img').forEach(img => {
+      images.forEach(img => {
         if (img.classList.contains('h-20') || img.classList.contains('h-24')) {
           img.style.maxHeight = '70px';
           img.style.height = 'auto';
@@ -354,59 +331,40 @@ const ExitLetter = () => {
         }
       });
       
-      // Generate PDF
-      const canvas = await html2canvas(letterRef.current, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(letterContainer, { scale: 2, useCORS: true });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const imgData = canvas.toDataURL('image/png');
       const width = pdf.internal.pageSize.getWidth();
       const height = (canvas.height * width) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, width, height);
       
-      // Convert PDF to blob
       const pdfBlob = pdf.output('blob');
       
-      // Create FormData for API request
-      const formData = new FormData();
-      formData.append('file', pdfBlob, `ExitLetter_${selectedEmployee.firstName}.pdf`);
+      const apiFormData = new FormData();
+      apiFormData.append('file', pdfBlob, `ExitLetter_${selectedEmployee.firstName}.pdf`);
       
-      // Send to API
       const response = await axios.post(
         `https://api.managifyhr.com/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/exit`,
-        formData,
+        apiFormData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         }
       );
       
-      // Restore original styles
-      letterRef.current.style.cssText = originalStyle;
-      
-      // Reset styles on paragraphs
-      paragraphs.forEach(p => {
-        p.style.marginBottom = '';
-        p.style.marginTop = '';
-      });
-      
-      // Reset styles on divs
-      contentDivs.forEach(div => {
-        if (div.classList.contains('mt-16') || div.classList.contains('mt-12') || div.classList.contains('mt-10') || div.classList.contains('mt-6')) {
-          div.style.marginTop = '';
-        }
-        if (div.classList.contains('mt-8')) {
-          div.style.marginTop = '';
-        }
-        if (div.classList.contains('h-28')) {
-          div.style.height = '';
-        }
-      });
-      
       console.log('Email API Response:', response.data);
       toast.success(`Exit letter sent to ${selectedEmployee.email} successfully!`);
+
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error('Failed to send email');
+      toast.error('Failed to send email. See console for details.');
+    } finally {
+      // Restore original styles
+      if (letterRef.current) {
+        letterRef.current.style.cssText = originalStyle;
+        paragraphs.forEach((p, i) => p.style.cssText = originalParagraphStyles[i]);
+        contentDivs.forEach((div, i) => div.style.cssText = originalDivStyles[i]);
+        images.forEach((img, i) => img.style.cssText = originalImageStyles[i]);
+      }
     }
   };
 
@@ -728,4 +686,4 @@ const ExitLetter = () => {
   );
 };
 
-export default ExitLetter; 
+export default ExitLetter;

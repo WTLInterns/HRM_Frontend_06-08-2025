@@ -175,6 +175,27 @@
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
+.notification-delete-all-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification-delete-all-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
 .notification-refresh-btn,
 .notification-close-btn {
   background: rgba(255, 255, 255, 0.2);
@@ -294,6 +315,73 @@
   margin-bottom: 6px;
 }
 
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.notification-delete-btn:active {
+  transform: scale(0.95);
+}
+
+/* Hide delete button by default, show on hover */
+.notification-item .notification-delete-btn {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.notification-item:hover .notification-delete-btn {
+  opacity: 0.7;
+  visibility: visible;
+}
+
+.notification-item:hover .notification-delete-btn:hover {
+  opacity: 1;
+}
+
+/* Spinner for loading states */
+.spinner {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 2px solid #ffffff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Disabled state for delete buttons */
+.notification-delete-btn:disabled,
+.notification-delete-all-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .notification-title {
   font-weight: 700;
   color: #1f2937;
@@ -390,6 +478,15 @@
   background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
 }
 
+[data-theme="dark"] .notification-delete-all-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-delete-all-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+
 [data-theme="dark"] .notification-body {
   color: #a0aec0;
 }
@@ -414,6 +511,14 @@
 [data-theme="dark"] .notification-type-badge {
   background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   color: #e2e8f0;
+}
+
+[data-theme="dark"] .notification-delete-btn {
+  color: #f87171;
+}
+
+[data-theme="dark"] .notification-delete-btn:hover {
+  background-color: rgba(248, 113, 113, 0.1);
 }
 
 [data-theme="dark"] .notification-list::-webkit-scrollbar-track {

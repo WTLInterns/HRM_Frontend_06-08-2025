@@ -74,30 +74,8 @@ const toTitleCase = (str) => {
     .join(" ")
 }
 
-// Calculate monthly salary components from yearly CTC
-const calculateSalaryComponents = (yearlyCTC) => {
-  const monthlyCTC = yearlyCTC / 12
-  const basicPercent = 0.5 // 50% of CTC
-  const hraPercent = 0.2  // 20% of CTC
-  const daPercent = 0.53  // 53% of Basic
-
-  const basic = Math.round(monthlyCTC * basicPercent)
-  const hra = Math.round(monthlyCTC * hraPercent)
-  const da = Math.round(basic * daPercent)
-  const special = Math.round(monthlyCTC - (basic + hra + da))
-  const totalAllowance = hra + da + special
-  const grossSalary = basic + totalAllowance
-
-  return {
-    basic,
-    hra,
-    da,
-    special,
-    totalAllowance,
-    grossSalary,
-    monthlyCTC,
-  }
-}
+// Note: Salary calculations are now handled by the backend API
+// The frontend uses the calculated values from the salary report response
 
 // Helper to ensure date is in YYYY-MM-DD format
 const toApiDate = (dateStr) => {
@@ -116,14 +94,14 @@ export default function SalaryReport() {
   const { isDarkMode } = useApp();
   const { emp } = useApp();
   const { t } = useTranslation();
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [employeeName, setEmployeeName] = useState("");
   const [selectedEmpId, setSelectedEmpId] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [validation, setValidation] = useState({ employeeName: '', startDate: '', endDate: '' });
   // Company details will be retrieved from local storage
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
   const [yearlyCTC, setYearlyCTC] = useState(0)
   const [salaryReport, setSalaryReport] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -249,10 +227,10 @@ export default function SalaryReport() {
       // Fetch the complete employee details to ensure we have department and bank details
       let employeeDetails = {}
       try {
-        // Get employee by name - this should return the full employee entity
-        // const empResponse = await axios.get(
-        //   `https://api.managifyhr.com/api/employee/${user.id}/employee/by-name/${encodeURIComponent(employeeName)}`
-        // )
+        // Get employee by empId - this is more reliable than using name
+        const empResponse = await axios.get(
+          `https://api.managifyhr.com/api/employee/${user.id}/employee/by-id/${selectedEmpId}`
+        )
         if (empResponse.status === 200) {
           employeeDetails = empResponse.data
           console.log("Complete employee details:", employeeDetails)
@@ -712,8 +690,15 @@ export default function SalaryReport() {
         const salaryCol4 = contentWidth * 0.2
 
         const ctcVal = yearlyCTC
-        const { basic, hra, da, special, totalAllowance, grossSalary, monthlyCTC } =
-          calculateSalaryComponents(ctcVal)
+
+        // Use backend calculated values instead of hardcoded frontend calculation
+        const basic = Math.round(salaryReport?.basic || 0)
+        const hra = Math.round(salaryReport?.hra || 0)
+        const da = Math.round(salaryReport?.daAllowance || 0)
+        const special = Math.round(salaryReport?.specialAllowance || 0)
+        const totalAllowance = Math.round(salaryReport?.totalAllowance || 0)
+        const grossSalary = Math.round(salaryReport?.grossSalary || 0)
+        const monthlyCTC = grossSalary // Use gross salary as monthly CTC
 
         const workingDays = salaryReport?.workingDays || 30
         const perDaySalary = monthlyCTC / workingDays
@@ -918,11 +903,11 @@ export default function SalaryReport() {
           </div>
         </div>
       )}
-      <div className={`px-4 py-4 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
-        <h1 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('navigation.salarySlip')} {t('common.create')}</h1>
+      <div className={`px-2 sm:px-4 py-4 min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
+        <h1 className={`text-lg sm:text-xl font-bold mb-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('navigation.salarySlip')} {t('common.create')}</h1>
 
-        {/* Form */}
-        <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-4 rounded-lg shadow-lg border`}>
+        {/* Compact Mobile-responsive Form */}
+        <div className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-3 sm:p-6 rounded-lg shadow-lg border max-w-full overflow-hidden`}>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-3 mb-3">
             <div>
               <label htmlFor="employeeName" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -996,32 +981,36 @@ export default function SalaryReport() {
               {validation.employeeName && <p className="text-red-500 text-xs mt-1">{validation.employeeName}</p>}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Compact mobile-responsive date inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <label htmlFor="startDate" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="startDate" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Start Date
               </label>
               <input
                 type="date"
                 id="startDate"
-                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'} border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
+                placeholder="Select start date"
               />
               {validation.startDate && <p className="text-red-500 text-xs mt-1">{validation.startDate}</p>}
             </div>
+
             <div>
-              <label htmlFor="endDate" className={`block mb-1 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="endDate" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 End Date
               </label>
               <input
                 type="date"
                 id="endDate"
-                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border focus:ring-blue-500 focus:border-blue-500`}
+                className={`w-full p-2 rounded-md ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'} border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
+                placeholder="Select end date"
               />
               {validation.endDate && <p className="text-red-500 text-xs mt-1">{validation.endDate}</p>}
             </div>
