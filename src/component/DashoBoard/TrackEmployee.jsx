@@ -21,7 +21,7 @@ const containerStyle = {
 // Reverse geocoding function
 const fetchAddress = async (lat, lng, setter) => {
   try {
-    const apiKey = "AIzaSyCelDo4I5cPQ72TfCTQW-arhPZ7ALNcp8w";
+    const apiKey = "AIzaSyAKjmBSUJ3XR8uD10vG2ptzqLJAZnOlzqI";
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
@@ -63,7 +63,7 @@ const TrackEmployee = () => {
   const [selectedExportEmployee, setSelectedExportEmployee] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCelDo4I5cPQ72TfCTQW-arhPZ7ALNcp8w"
+    googleMapsApiKey: "AIzaSyAKjmBSUJ3XR8uD10vG2ptzqLJAZnOlzqI"
   });
 
   const getSubadminId = () => {

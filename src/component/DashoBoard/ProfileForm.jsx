@@ -159,7 +159,7 @@ const ImageUploadPreview = ({
             <input
               type="file"
               id={`${label.replace(/\s+/g, '')}-upload`}
-              accept="image/jpeg,image/png,image/gif"
+              accept="image/*"
               className="hidden"
               onChange={onUpload}
             />
@@ -512,17 +512,12 @@ const ProfileForm = () => {
       // Company Logo handling
       if (companyLogoFile) {
         // New file being uploaded
-        const fileExt = companyLogoFile.name.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-          if (companyLogoFile.size <= 20 * 1024 * 1024) {
-            formData.append('companylogo', companyLogoFile);
-            console.log('Adding new company logo file:', companyLogoFile.name);
-            hasUploadedFiles = true;
-          } else {
-            toast.warning(`Logo file is too large (${Math.round(companyLogoFile.size/1024/1024)} MB). Maximum size is 20MB.`);
-          }
+        if (companyLogoFile.size <= 200 * 1024 * 1024) {
+          formData.append('companylogo', companyLogoFile);
+          console.log('Adding new company logo file:', companyLogoFile.name);
+          hasUploadedFiles = true;
         } else {
-          toast.warning(`Invalid file type for logo: ${fileExt}. Use jpg, jpeg, png, or gif.`);
+          toast.warning(`Logo file is too large (${Math.round(companyLogoFile.size/1024/1024)} MB). Maximum size is 200MB.`);
         }
       } else {
         // Pass empty parameter to avoid null pointer exception
@@ -533,17 +528,12 @@ const ProfileForm = () => {
       // Stamp Image handling
       if (stampImgFile) {
         // New file being uploaded
-        const fileExt = stampImgFile.name.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-          if (stampImgFile.size <= 20 * 1024 * 1024) {
-            formData.append('stampImg', stampImgFile);
-            console.log('Adding new stamp image file:', stampImgFile.name);
-            hasUploadedFiles = true;
-          } else {
-            toast.warning(`Stamp file is too large (${Math.round(stampImgFile.size/1024/1024)} MB). Maximum size is 20MB.`);
-          }
+        if (stampImgFile.size <= 200 * 1024 * 1024) {
+          formData.append('stampImg', stampImgFile);
+          console.log('Adding new stamp image file:', stampImgFile.name);
+          hasUploadedFiles = true;
         } else {
-          toast.warning(`Invalid file type for stamp: ${fileExt}. Use jpg, jpeg, png, or gif.`);
+          toast.warning(`Stamp file is too large (${Math.round(stampImgFile.size/1024/1024)} MB). Maximum size is 200MB.`);
         }
       } else {
         // Pass empty parameter to avoid null pointer exception
@@ -554,17 +544,12 @@ const ProfileForm = () => {
       // Signature handling
       if (signatureFile) {
         // New file being uploaded
-        const fileExt = signatureFile.name.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-          if (signatureFile.size <= 20 * 1024 * 1024) {
-            formData.append('signature', signatureFile);
-            console.log('Adding new signature file:', signatureFile.name);
-            hasUploadedFiles = true;
-          } else {
-            toast.warning(`Signature file is too large (${Math.round(signatureFile.size/1024/1024)} MB). Maximum size is 20MB.`);
-          }
+        if (signatureFile.size <= 200 * 1024 * 1024) {
+          formData.append('signature', signatureFile);
+          console.log('Adding new signature file:', signatureFile.name);
+          hasUploadedFiles = true;
         } else {
-          toast.warning(`Invalid file type for signature: ${fileExt}. Use jpg, jpeg, png, or gif.`);
+          toast.warning(`Signature file is too large (${Math.round(signatureFile.size/1024/1024)} MB). Maximum size is 200MB.`);
         }
       } else {
         // Pass empty parameter to avoid null pointer exception
