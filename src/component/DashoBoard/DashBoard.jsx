@@ -11,7 +11,7 @@ import SetSalary from "./SetSalary";
 import SalarySheet from "./SalarySheet";
 import SalarySlip from "./SalarySlip";
 import AddEmp from "./AddEmp";
-import ViewAttendance from "./ViewAttendance";
+import ViewAttendanceFixed from "./ViewAttendanceFixed";
 import CheckImages from "./CheckImages";
 import { IoIosLogOut, IoIosPersonAdd } from "react-icons/io";
 import { LuNotebookPen } from "react-icons/lu";
@@ -705,7 +705,7 @@ const Dashboard = () => {
             <Route path="set-salary" element={<SetSalary />} />
             <Route path="salarysheet" element={<SalarySheet />} />
             <Route path="salaryslip" element={<SalarySlip />} />
-            <Route path="viewAtt" element={<ViewAttendance />} />
+            <Route path="viewAtt" element={<ViewAttendanceFixed />} />
             <Route path="check-images" element={<CheckImages />} />
             <Route path="profileform" element={<ProfileForm />} />
             <Route path="certificates" element={<Certificates />} />

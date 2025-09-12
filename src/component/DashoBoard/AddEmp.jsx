@@ -19,8 +19,13 @@ import axios from "axios";
 import { useApp } from "../../context/AppContext";
 import { useTranslation } from 'react-i18next';
 
-// Utility to get API base URL from env
-const API_URL = import.meta.env.VITE_API_URL;
+// Utility to get API base URL from env with a safe local default
+let API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL || typeof API_URL !== 'string' || !/^https?:\/\//i.test(API_URL)) {
+  // Default to local backend for development
+  API_URL = 'https://api.managifyhr.com';
+  console.warn('VITE_API_URL not set or invalid. Defaulting to', API_URL);
+}
 
 export default function AddEmp() {
   const { isDarkMode } = useApp();

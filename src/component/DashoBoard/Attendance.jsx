@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import "./animations.css";
 import { FaCheckCircle, FaTimes, FaCalendarAlt } from "react-icons/fa";
 import Calendar from "react-calendar";
@@ -39,6 +39,40 @@ export default function Attendance() {
   const [employeeList, setEmployeeList] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedEmpId, setSelectedEmpId] = useState(null);
+  // Ref to focus the employee name input after submit/reset
+  const employeeInputRef = useRef(null);
+
+  // Reset the entire form to initial state and focus employee input
+  const resetForm = (options = {}) => {
+    const { keepSubmitting = false } = options;
+    setEmployeeName("");
+    setSelectedEmpId(null);
+    setSelectedDates([]);
+    setAttendanceRecords([]);
+    setSelectedDate(null);
+    setShowStatusDropdown(false);
+    setDropdownPosition({ x: 0, y: 0 });
+    setSuggestions([]);
+    setError(null);
+
+    // Clear any transient modal/time/reason state
+    setShowReasonModal(false);
+    setPendingStatus(null);
+    setPendingDate(null);
+    setReasonInput("");
+    setReasonError("");
+
+    setShowTimeModal(false);
+    setSelectedTime("");
+    setTimeError("");
+    setCurrentTimeRecord(null);
+    setTimeModalType(null);
+
+    if (!keepSubmitting) setSubmitting(false);
+
+    // Return focus to the employee input
+    setTimeout(() => employeeInputRef.current?.focus(), 0);
+  };
 
   // Attendance statuses with translations - using useMemo to ensure updates on language change
   const statusOptions = useMemo(() => [
@@ -702,6 +736,7 @@ export default function Attendance() {
       // Retrieve user details.
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const subAdminId = storedUser?.subAdminId || 2;
+      const empIdForSubmit = selectedEmpId; // capture before UI reset
 
       const config = {
         headers: {
@@ -733,6 +768,8 @@ export default function Attendance() {
 
       // Check if there are any records to process
       if (newRecords.length === 0 && updateRecords.length === 0) {
+        // Clear immediately and focus back to employee name
+        resetForm();
         toast.success("All attendance records are already saved!", {
           duration: 3000,
           style: {
@@ -754,7 +791,7 @@ export default function Attendance() {
         promises.push(
           axios
             .post(
-              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${empIdForSubmit}/attendance/add/bulk`,
               newRecords,
               config
             )
@@ -769,7 +806,7 @@ export default function Attendance() {
         promises.push(
           axios
             .put(
-              `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${empIdForSubmit}/attendance/update/bulk`,
               updateRecords,
               config
             )
@@ -780,6 +817,11 @@ export default function Attendance() {
             }))
         );
       }
+
+      // Immediately clear the UI while processing in background
+      const selectedCountForStorage = selectedDates.length;
+      localStorage.setItem("submittedDatesCount", selectedCountForStorage.toString());
+      resetForm({ keepSubmitting: true });
 
       const results = await Promise.allSettled(promises);
       let successCount = 0;
@@ -824,11 +866,8 @@ export default function Attendance() {
 
       setShowSuccessModal(true);
       localStorage.setItem("submittedDatesCount", selectedDates.length.toString());
-      setEmployeeName("");
-      setSelectedDates([]);
-      setAttendanceRecords([]);
-      setSubmitting(false);
-      setSelectedEmpId(null);
+      // Reset UI to initial state and focus employee name
+      resetForm();
     } catch (err) {
       setSubmitting(false);
       console.error("Error marking attendance:", err);
@@ -904,6 +943,7 @@ export default function Attendance() {
                   onChange={e => setEmployeeName(e.target.value)}
                   placeholder={t('attendanceManagement.employeeNamePlaceholder')}
                   required
+                  ref={employeeInputRef}
                 />
                 {suggestions.length > 0 && (
                   <ul className={`absolute z-10 w-full border mt-1 rounded-lg max-h-60 overflow-auto ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-gray-300'}`}>
