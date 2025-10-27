@@ -385,9 +385,20 @@ const CheckInvoice = () => {
         data: error.response?.data,
         endpoint: `${INVOICE_API_URL}/${subadminId}`
       });
-      setInvoices([]);
-      if (error.code !== 'ERR_NETWORK') {
-        alert('Failed to fetch invoices: ' + (error.response?.data?.message || error.message));
+      // If backend returns 404 (no invoices for this subadmin), show empty state without alert
+      if (error.response?.status === 404) {
+        setInvoices([]);
+      } else {
+        setInvoices([]);
+        if (error.code === 'ERR_NETWORK') {
+          // Network error: keep silent here; other areas already surface connectivity issues
+          console.warn('Network issue while fetching invoices.');
+        } else {
+          // For other server errors, show a non-blocking toast instead of alert
+          try { toast && toast.error && toast.error('Failed to fetch invoices: ' + (error.response?.data?.message || error.message)); } catch (_) {
+            console.error('Toast not available to show error');
+          }
+        }
       }
     } finally {
       setLoading(false);
