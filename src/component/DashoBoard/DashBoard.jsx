@@ -38,6 +38,9 @@ import NotificationDebugger from "./NotificationDebugger";
 import NotificationBell from "../../components/NotificationBell";
 import firebaseService from "../../services/firebaseService";
 import { toast } from "react-toastify";
+import AddProducts from "./Products/AddProducts";
+import CheckInvoice from "./Products/CheckInvoice";
+import CheckData from "./Products/CheckData";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -77,6 +80,7 @@ const Dashboard = () => {
   const [attendanceDropdownOpen, setAttendanceDropdownOpen] = useState(false);
   const [openingsDropdownOpen, setOpeningsDropdownOpen] = useState(false);
   const [salaryDropdownOpen, setSalaryDropdownOpen] = useState(false);
+  const [productsDropdownOpen, setProductsDropdownOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isProfitable, setIsProfitable] = useState(false);
@@ -437,6 +441,7 @@ const Dashboard = () => {
   const toggleAttendanceDropdown = () => setAttendanceDropdownOpen(!attendanceDropdownOpen);
   const toggleOpeningsDropdown = () => setOpeningsDropdownOpen(!openingsDropdownOpen);
   const toggleSalaryDropdown = () => setSalaryDropdownOpen(!salaryDropdownOpen);
+  const toggleProductsDropdown = () => setProductsDropdownOpen(!productsDropdownOpen);
   const handleLogoutClick = () => setShowLogoutModal(true);
   const confirmLogout = () => {
     setShowLogoutModal(false);
@@ -468,6 +473,11 @@ const Dashboard = () => {
     { id: 'openings', label: t('navigation.openings'), icon: <FaBriefcase />, dropdown: true, children: [
       { to: "/dashboard/add-openings", label: t('navigation.addOpening'), icon: <FaArrowDown className="text-blue-400" /> },
       { to: "/dashboard/resume", label: t('navigation.resume'), icon: <FaArrowDown className="text-blue-400" /> },
+    ]},
+    { id: 'products', label: 'Products', icon: <FaChartPie />, dropdown: true, children: [
+      { to: "/dashboard/add-products", label: 'Add Products', icon: <FaArrowDown className="text-blue-400" /> },
+      { to: "/dashboard/check-invoice", label: 'Check Invoice', icon: <FaReceipt className="text-blue-400" /> },
+      { to: "/dashboard/check-data", label: 'Check Data', icon: <FaChartPie className="text-blue-400" /> },
     ]},
     { to: "/dashboard/emergency-message", label: t('navigation.emergencyMessage'), icon: <FaExclamationTriangle /> },
   ];
@@ -637,15 +647,15 @@ const Dashboard = () => {
             {navLinks.map((link, index) => (
               link.dropdown ? (
                 <div key={index} className="mb-1 animate-fadeIn" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <button onClick={link.id === "attendance" ? toggleAttendanceDropdown : link.id === "salary" ? toggleSalaryDropdown : toggleOpeningsDropdown} className="flex items-center justify-between w-full gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item ripple">
+                  <button onClick={link.id === "attendance" ? toggleAttendanceDropdown : link.id === "salary" ? toggleSalaryDropdown : link.id === "openings" ? toggleOpeningsDropdown : link.id === "products" ? toggleProductsDropdown : undefined} className="flex items-center justify-between w-full gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item ripple">
                     <div className="flex items-center gap-2">{link.icon && <span className="text-blue-400 w-6">{link.icon}</span>} {link.label}</div>
-                    {(link.id === "attendance" ? attendanceDropdownOpen : link.id === "salary" ? salaryDropdownOpen : openingsDropdownOpen) ? (
+                    {(link.id === "attendance" ? attendanceDropdownOpen : link.id === "salary" ? salaryDropdownOpen : link.id === "openings" ? openingsDropdownOpen : link.id === "products" ? productsDropdownOpen : false) ? (
                       <MdKeyboardArrowDown className="transition-transform duration-300 text-blue-400" />
                     ) : (
                       <MdKeyboardArrowRight className="transition-transform duration-300 text-blue-400" />
                     )}
                   </button>
-                  {((link.id === "attendance" && attendanceDropdownOpen) || (link.id === "salary" && salaryDropdownOpen) || (link.id === "openings" && openingsDropdownOpen)) && (
+                  {((link.id === "attendance" && attendanceDropdownOpen) || (link.id === "salary" && salaryDropdownOpen) || (link.id === "openings" && openingsDropdownOpen) || (link.id === "products" && productsDropdownOpen)) && (
                     <div className="pl-8 mt-1 space-y-1 animate-slideIn">
                       {link.children.map((child, childIndex) => (
                         <Link key={childIndex} to={child.to} state={child.state} className="flex items-center gap-2 p-2 rounded hover:bg-slate-700 hover:text-blue-400 transition-all duration-300 menu-item hover:translate-x-2" onClick={closeMobileMenu}>
@@ -718,6 +728,9 @@ const Dashboard = () => {
             <Route path="add-openings" element={<AddOpenings />} />
             <Route path="resume" element={<Resume />} />
             <Route path="emergency-message" element={<EmergencyMessage />} />
+            <Route path="add-products" element={<AddProducts />} />
+            <Route path="check-invoice" element={<CheckInvoice />} />
+            <Route path="check-data" element={<CheckData />} />
             <Route path="*" element={<DashoBoardRouter />} />
           </Routes>
         </div>
