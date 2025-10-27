@@ -339,7 +339,7 @@ const NotificationBell = () => {
     try {
       console.log('🗑️ Deleting notification with ID:', notificationId);
 
-      const response = await fetch(`http://localhost:8081/api/fcm/notifications/${notificationId}`, {
+      const response = await fetch(`https://api.managifyhr.com/api/fcm/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -415,7 +415,7 @@ const NotificationBell = () => {
 
       const notificationIds = notifications.map(n => n.id);
 
-      const response = await fetch('http://localhost:8081/api/fcm/notifications/batch', {
+      const response = await fetch('https://api.managifyhr.com/api/fcm/notifications/batch', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

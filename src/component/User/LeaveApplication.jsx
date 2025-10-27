@@ -105,7 +105,7 @@ const LeaveApplication = () => {
         status: 'Pending'
       };
 
-      const apiUrl = `http://localhost:8081/api/leaveform/${userData.subadmin?.id}/${userData.empId}/${userToken}/${subadminToken}`;
+      const apiUrl = `https://api.managifyhr.com/api/leaveform/${userData.subadmin?.id}/${userData.empId}/${userToken}/${subadminToken}`;
       console.log('🚀 Submitting leave application to:', apiUrl);
       console.log('📝 Leave request data:', leaveRequest);
 

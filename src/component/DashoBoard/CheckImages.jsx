@@ -35,7 +35,7 @@ const CheckImages = () => {
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
       const subAdminId = storedUser?.subAdminId || storedUser?.id || 2;
       
-      const response = await axios.get(`http://localhost:8081/api/employee/${subAdminId}/list`);
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/${subAdminId}/list`);
       setEmployees(response.data);
     } catch (error) {
       toast.error(t('checkImages.errors.failedToFetch'));
@@ -55,7 +55,7 @@ const CheckImages = () => {
       const subAdminId = storedUser?.subAdminId || storedUser?.id || 2;
       
       const response = await axios.get(
-        `http://localhost:8081/api/employee/${subAdminId}/${selectedEmployee}/attendance/images?date=${selectedDate}`
+        `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmployee}/attendance/images?date=${selectedDate}`
       );
       
       if (response.data.imageUrl) {
@@ -86,7 +86,7 @@ const CheckImages = () => {
       const subAdminId = storedUser?.subAdminId || storedUser?.id || 2;
       
       const response = await axios.get(
-        `http://localhost:8081/api/employee/${subAdminId}/attendance/images/all?date=${selectedDate}`
+        `https://api.managifyhr.com/api/employee/${subAdminId}/attendance/images/all?date=${selectedDate}`
       );
       
       setAllImages(response.data);
