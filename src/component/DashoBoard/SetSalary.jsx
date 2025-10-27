@@ -6,7 +6,7 @@ import { FaCalculator, FaSave, FaPercent, FaRupeeSign, FaEye } from "react-icons
 import { MdSettings } from "react-icons/md";
 import axios from 'axios';
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8081/api";
 
 // CSS to hide number input spinners
 const hideSpinnerStyle = `

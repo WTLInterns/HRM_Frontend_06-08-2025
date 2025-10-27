@@ -146,7 +146,7 @@ const ResumeUpload = () => {
       uploadData.append('file', formData.file);
       uploadData.append('jobRole', formData.jobRole);
 
-      const apiUrl = `https://api.managifyhr.com/api/resume/upload/${userData.empId}/${userToken}/${subadminToken}`;
+      const apiUrl = `http://localhost:8081/api/resume/upload/${userData.empId}/${userToken}/${subadminToken}`;
       console.log('🚀 Uploading resume to:', apiUrl);
       console.log('📝 Job role:', formData.jobRole);
       console.log('📄 File:', formData.file.name);

@@ -69,13 +69,13 @@ const ResetPassword = () => {
       if (userType === "masteradmin") {
         // Use Master Admin API for password reset
         response = await axios.post(
-          `https://api.managifyhr.com/masteradmin/forgot-password/verify?email=${email}&otp=${otp}&newPassword=${newPassword}`
+          `http://localhost:8081/masteradmin/forgot-password/verify?email=${email}&otp=${otp}&newPassword=${newPassword}`
         );
         console.log("Master Admin password reset response:", response.data);
       } else if (userType === "subadmin") {
         // Use Subadmin API for password reset
         response = await axios.post(
-          `https://api.managifyhr.com/api/subadmin/forgot-password/verify?email=${email}&otp=${otp}&newPassword=${newPassword}`
+          `http://localhost:8081/api/subadmin/forgot-password/verify?email=${email}&otp=${otp}&newPassword=${newPassword}`
         );
         console.log("Subadmin password reset response:", response.data);
       } else {

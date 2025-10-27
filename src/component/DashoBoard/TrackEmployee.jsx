@@ -8,7 +8,7 @@ import { FaTimes, FaFileExcel } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useTranslation } from 'react-i18next';
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8081/api";
 
 const containerStyle = {
   width: "100%",
@@ -131,7 +131,7 @@ const TrackEmployee = () => {
       stompClientRef.current.deactivate();
     }
 
-    const sock = new SockJS("https://api.managifyhr.com/ws");
+    const sock = new SockJS("http://localhost:8081/ws");
     const stompClient = new Client({
       webSocketFactory: () => sock,
       reconnectDelay: 5000,

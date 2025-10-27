@@ -33,7 +33,7 @@ export default function ViewAttendanceFixed() {
   // Safe API base URL with localhost default
   let API_URL = import.meta.env?.VITE_API_URL;
   if (!API_URL || typeof API_URL !== 'string' || !/^https?:\/\//i.test(API_URL)) {
-    API_URL = 'https://api.managifyhr.com';
+    API_URL = 'http://localhost:8081';
   }
 
   // Format time helper

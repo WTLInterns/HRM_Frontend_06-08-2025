@@ -156,9 +156,9 @@ const CheckInvoice = () => {
   };
 
   const subadminId = getSubadminId();
-  const INVOICE_API_URL = 'https://api.managifyhr.com/api/invoices';
-  const EMPLOYEE_API_URL = 'https://api.managifyhr.com/api/employee';
-  const PRODUCT_API_URL = 'https://api.managifyhr.com/api/products';
+  const INVOICE_API_URL = 'http://localhost:8081/api/invoices';
+  const EMPLOYEE_API_URL = 'http://localhost:8081/api/employee';
+  const PRODUCT_API_URL = 'http://localhost:8081/api/products';
 
   // If no subadminId, show error message
   if (!subadminId) {
@@ -186,7 +186,7 @@ const CheckInvoice = () => {
       console.log('🚀 Component mounted, testing API connectivity...');
 
       // Test if we can reach the backend
-      axios.get('https://api.managifyhr.com/api/invoices/1')
+      axios.get('http://localhost:8081/api/invoices/1')
         .then(response => {
           console.log('✅ Backend is accessible');
         })
@@ -886,14 +886,22 @@ const CheckInvoice = () => {
       let yPosition = margin;
       let grand = 0; // Initialize grand variable for totals calculation
 
-      // Company Logo - Centered at top
+      // Company Logo - Top-right
       if (companyLogoPreview || companyLogo) {
         try {
           const logoSrc = companyLogoPreview || companyLogo;
-          // Center the logo
-          const logoSize = 20;
-          const logoX = (pageWidth - logoSize) / 2;
-          doc.addImage(logoSrc, 'PNG', logoX, 8, logoSize, logoSize);
+          // Determine image type from data URL if available
+          let imgType = 'PNG';
+          if (typeof logoSrc === 'string') {
+            if (logoSrc.startsWith('data:image/jpeg') || logoSrc.startsWith('data:image/jpg')) imgType = 'JPEG';
+            if (logoSrc.startsWith('data:image/png')) imgType = 'PNG';
+          }
+          // Place logo at top-right within margins
+          const logoW = 30; // mm (wider logo)
+          const logoH = 16; // mm (flatter height)
+          const logoX = pageWidth - margin - logoW;
+          const logoY = 12; // sits above divider and aligned with title area
+          doc.addImage(logoSrc, imgType, logoX, logoY, logoW, logoH);
         } catch (err) {
           console.warn('Logo rendering skipped:', err.message);
         }
@@ -906,12 +914,7 @@ const CheckInvoice = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('INVOICE', margin, yPosition);
       doc.setTextColor(0, 0, 0);
-
-      // Thin purple divider
-      yPosition += 3;
-      doc.setDrawColor(...purple);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      // Add spacing below title to avoid overlap with meta
       yPosition += 8;
 
       // Invoice meta: left-aligned stack
@@ -933,7 +936,12 @@ const CheckInvoice = () => {
         doc.text(dueDate, margin + 25, yPosition);
         yPosition += 5;
       }
+      // Purple divider moved below meta
       yPosition += 5;
+      doc.setDrawColor(...purple);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 8;
 
       // Billed By / Billed To Section (two equal columns)
       const billedStartY = yPosition;
@@ -1056,7 +1064,12 @@ const CheckInvoice = () => {
         let rowY = tableY + headerH;
 
         items.forEach((it, idx) => {
-          const total = typeof it.total === 'number' ? it.total : ((it.quantity||0)*(it.unitPrice||0) - (((it.quantity||0)*(it.unitPrice||0))*(it.discountPct||0)/100)) * (1 + (it.taxPct||0)/100) + Math.max(0, it.shipping||0);
+          const total = typeof it.total === 'number'
+            ? it.total
+            : ((it.quantity || 0) * (it.unitPrice || 0)
+              - (((it.quantity || 0) * (it.unitPrice || 0)) * (it.discountPct || 0) / 100))
+              * (1 + (it.taxPct || 0) / 100)
+              + Math.max(0, it.shipping || 0);
           grand += total;
 
           // Alternating background - Apply to all rows with alternating colors
@@ -1068,28 +1081,23 @@ const CheckInvoice = () => {
             doc.rect(margin, rowY, contentWidth, rowH, 'F');
           }
 
-          // Row data - Use "Rs." text instead of rupee symbol for better jsPDF compatibility
-          const currencySymbol = 'Rs.'; // Use "Rs." text for guaranteed compatibility
-          const finalSymbol = currencySymbol;
-
+          // Row data values (no 'Rs.' prefix in cells)
           const rowData = [
             String(idx + 1),
             it.name || '',
             String(it.quantity || 0),
-            `${finalSymbol}${Number(it.unitPrice || 0).toFixed(2)}`,
-            `${finalSymbol}${Math.max(0, Number(it.shipping || 0)).toFixed(2)}`,
+            Number(it.unitPrice || 0).toFixed(2),
+            Math.max(0, Number(it.shipping || 0)).toFixed(2),
             Number(it.discountPct || 0).toFixed(2),
             Number(it.taxPct || 0).toFixed(2),
-            `${finalSymbol}${Number(total).toFixed(2)}`
+            Number(total).toFixed(2)
           ];
 
           // Draw text in each cell - perfectly aligned
           let cellX = margin;
           const textY = rowY + (rowH / 2) + 2;
-
           rowData.forEach((val, i) => {
             const centerX = cellX + (colW[i] / 2);
-
             if (i === 0) {
               // Sr. - center
               doc.text(String(val), centerX, textY, { align: 'center' });
@@ -1709,7 +1717,7 @@ const CheckInvoice = () => {
       autoClose: 4000,
       onClose: () => {
         // First try: Open in new tab
-        const pdfUrl = `https://api.managifyhr.com/api/invoices/${subadminId}/${invoice.id}/pdf`;
+        const pdfUrl = `http://localhost:8081/api/invoices/${subadminId}/${invoice.id}/pdf`;
         console.log('🔗 Attempting to open PDF in new tab:', pdfUrl);
         window.open(pdfUrl, '_blank');
 
@@ -1944,14 +1952,14 @@ const CheckInvoice = () => {
   const handleViewPdf = (invoice) => {
     if (!invoice) return;
     const path = invoice.invoicePdfPath;
-    const fallbackUrl = `https://api.managifyhr.com/api/invoices/${subadminId}/${invoice.id}/pdf`;
-    const pdfUrl = path ? (path.startsWith('http') ? path : `https://api.managifyhr.com${path}`) : fallbackUrl;
+    const fallbackUrl = `http://localhost:8081/api/invoices/${subadminId}/${invoice.id}/pdf`;
+    const pdfUrl = path ? (path.startsWith('http') ? path : `http://localhost:8081${path}`) : fallbackUrl;
     window.open(pdfUrl, '_blank');
   };
 
   const handleDownloadPdf = (invoice) => {
     if (invoice.invoicePdfPath) {
-      const pdfUrl = `https://api.managifyhr.com${invoice.invoicePdfPath}`;
+      const pdfUrl = `http://localhost:8081${invoice.invoicePdfPath}`;
       window.open(pdfUrl, '_blank');
     } else {
       alert('No PDF available for this invoice');
@@ -3621,7 +3629,7 @@ const CheckInvoice = () => {
                 <button
                   onClick={() => {
                     // Direct fallback to new tab
-                    window.open(`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
+                    window.open(`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
                   }}
                   className={`px-4 py-2 rounded-lg font-semibold transition ${
                     isDarkMode
@@ -3666,7 +3674,7 @@ const CheckInvoice = () => {
                       <button
                         onClick={() => {
                           // Direct fallback to new tab
-                          window.open(`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
+                          window.open(`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
                         }}
                         className={`px-3 py-2 rounded-lg font-semibold transition ${
                           isDarkMode
@@ -3682,7 +3690,7 @@ const CheckInvoice = () => {
                   <div className="flex-1 flex items-center justify-center bg-gray-50">
                     <div className="w-full h-full max-w-none">
                       <iframe
-                        src={`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`}
+                        src={`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`}
                         className="w-full h-full"
                         title={`Invoice ${selectedPdfInvoice.invoiceNumber}`}
                         onError={(e) => {

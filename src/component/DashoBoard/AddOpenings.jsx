@@ -77,7 +77,7 @@ const AddOpenings = () => {
   const fetchOpenings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`https://api.managifyhr.com/api/openings/${subadminId}`);
+      const res = await axios.get(`http://localhost:8081/api/openings/${subadminId}`);
       setOpenings(res.data || []);
     } catch {
       setOpenings([]);
@@ -113,7 +113,7 @@ const AddOpenings = () => {
     setLoading(true);
     try {
       if (editingId) {
-        await axios.put(`https://api.managifyhr.com/api/openings/${subadminId}/${editingId}`, form);
+        await axios.put(`http://localhost:8081/api/openings/${subadminId}/${editingId}`, form);
         toast.success("Opening updated successfully!");
       } else {
         console.log('🚀 Creating new job opening...');
@@ -121,7 +121,7 @@ const AddOpenings = () => {
         // Get FCM token for notification
         const { subadminToken } = await getFCMTokens();
 
-        const apiUrl = `https://api.managifyhr.com/api/openings/${subadminId}/${subadminToken}`;
+        const apiUrl = `http://localhost:8081/api/openings/${subadminId}/${subadminToken}`;
         console.log('📝 Job opening API URL:', apiUrl);
         console.log('📝 Form data:', form);
 
@@ -175,7 +175,7 @@ const AddOpenings = () => {
     if (!deleteTargetId) return;
     setLoading(true);
     try {
-      await axios.delete(`https://api.managifyhr.com/api/openings/${subadminId}/${deleteTargetId}`);
+      await axios.delete(`http://localhost:8081/api/openings/${subadminId}/${deleteTargetId}`);
       toast.success("Opening deleted successfully!");
       fetchOpenings();
     } catch (error) {
