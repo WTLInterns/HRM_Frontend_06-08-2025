@@ -219,9 +219,9 @@ export default function SalaryReport() {
       // Always send dates in YYYY-MM-DD format
       const apiStartDate = toApiDate(startDate.trim());
       const apiEndDate = toApiDate(endDate.trim());
-      // Using the new API endpoint format
+      // Prefer subadminId-based endpoint to avoid company name mismatches
       const response = await axios.get(
-        `https://api.managifyhr.com/api/employee/company/${encodeURIComponent(user.registercompanyname)}/employee/${selectedEmpId}/attendance/report?startDate=${apiStartDate}&endDate=${apiEndDate}`
+        `https://api.managifyhr.com/api/employee/${user.id}/${selectedEmpId}/salary-slip?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -245,7 +245,8 @@ export default function SalaryReport() {
         throw new Error("Failed to fetch salary report")
       }
       
-      const data = response.data
+      // The salary-slip endpoint wraps data in { success, employee, salarySlip, period }
+      const data = response.data?.salarySlip || response.data
       console.log("API Response:", data)
       
       // Use backend calculated values instead of frontend calculations
@@ -374,15 +375,15 @@ export default function SalaryReport() {
             if (loadedCount < 2) {
               console.log("Image loading timed out, using fallbacks");
               if (!images.signature) images.signature = WtlSign;
-              if (!images.companyLogo) images.companyLogo = companyLogo;
+              if (!images.companyStamp) images.companyStamp = companyLogo;
               resolve(images);
             }
           }, 3000);
         });
       };
-      
+
       // Start the PDF generation process with preloaded images
-      preloadImages().then((images) => {
+      preloadImages().then(async (images) => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
@@ -860,7 +861,25 @@ export default function SalaryReport() {
         const totalSlipHeight = yPos - slipStartY;
         doc.rect(margin, slipStartY, contentWidth, totalSlipHeight, "S");
 
-        // Finally, save PDF
+        // Upload PDF to backend, then save locally for user
+        try {
+          if (!user || !user.id || !selectedEmpId) {
+            console.warn('Missing subadminId or employeeId; skipping server upload for salary slip.');
+          } else {
+            const fileName = `${userData.registercompanyname}_salary_slip_${employeeName || 'employee'}.pdf`;
+            const blob = doc.output('blob');
+            const formData = new FormData();
+            formData.append('pdf', new File([blob], fileName, { type: 'application/pdf' }));
+            const uploadUrl = `https://api.managifyhr.com/api/salary-slips/${user.id}/${selectedEmpId}`;
+            await axios.post(uploadUrl, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            try { toast.success('Salary slip saved on server'); } catch (_) {}
+          }
+        } catch (uploadErr) {
+          console.error('Failed to upload salary slip PDF:', uploadErr);
+          try { toast.error('Failed to save salary slip on server'); } catch (_) {}
+        }
+
+        // Save PDF locally
         doc.save(`${userData.registercompanyname}_salary_slip_${employeeName || "employee"}.pdf`);
       });
       
