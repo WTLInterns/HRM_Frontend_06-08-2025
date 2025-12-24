@@ -8,7 +8,7 @@ import { FaTimes, FaFileExcel } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useTranslation } from 'react-i18next';
 
-const API_URL = "https://api.managifyhr.com/api";
+const API_URL = "http://localhost:8081/api";
 
 const containerStyle = {
   width: "100%",
@@ -87,31 +87,60 @@ const TrackEmployee = () => {
     }
   }, []);
 
-  const handleTrackAll = useCallback(async () => {
+  const handleTrackAll = useCallback(async (workType = 'FIELD') => {
     const subadminId = getSubadminId();
     if (!subadminId) return;
+    
     setLoading(true);
     setError("");
+    setSelectedEmployee(null); // Clear single employee selection
+    
     try {
-      // Use the new endpoint to get only "work from field" employees
-      const res = await axios.get(`${API_URL}/location/${subadminId}/employee/locations/field-work`);
-      const locations = res.data.map(loc => ({
-        ...loc,
-        lat: parseFloat(loc.latitude),
-        lng: parseFloat(loc.longitude)
-      }));
+      // Get all employee locations for the subadmin
+      const res = await axios.get(`${API_URL}/location/${subadminId}/employee/locations`);
+      
+      // Filter by work type if specified
+      const filteredLocations = workType 
+        ? res.data.filter(loc => loc.workType === workType)
+        : res.data;
+      
+      // Transform the data for the map
+      const locations = filteredLocations
+        .filter(loc => loc.latitude && loc.longitude)
+        .map(loc => ({
+          empId: loc.empId,
+          fullName: loc.fullName,
+          workType: loc.workType || 'UNKNOWN',
+          lat: parseFloat(loc.latitude),
+          lng: parseFloat(loc.longitude),
+          lastLat: loc.lastLatitude ? parseFloat(loc.lastLatitude) : null,
+          lastLng: loc.lastLongitude ? parseFloat(loc.lastLongitude) : null,
+          timestamp: loc.timestamp || new Date().toISOString()
+        }));
+      
       setFieldEmployeeLocations(locations);
+      
       if (locations.length > 0) {
-        setMapCenter({ lat: locations[0].lat, lng: locations[0].lng });
-        setZoom(12);
-        toast.success(`Tracking ${locations.length} "work from field" employees`);
+        // Calculate center point of all locations
+        const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
+        const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
+        
+        setMapCenter({ lat: avgLat, lng: avgLng });
+        setZoom(workType === 'FIELD' ? 12 : 10);
+        
+        const workTypeText = workType === 'FIELD' ? 'field' : 
+                           workType === 'OFFICE' ? 'office' : 
+                           workType === 'HOME' ? 'home' : 'all locations';
+        
+        toast.success(`Tracking ${locations.length} employees working from ${workTypeText}`);
       } else {
-        toast.info("No employees are currently working from field today");
-        setError("No employees are currently working from field today.");
+        toast.info(`No employees are currently working from ${workType || 'the selected location'} today`);
+        setError(`No employees are currently working from ${workType || 'the selected location'} today.`);
       }
     } catch (err) {
-      setError("Could not fetch work from field employee locations.");
-      toast.error("Failed to fetch work from field employee locations");
+      console.error('Error fetching employee locations:', err);
+      setError("Could not fetch employee locations. Please try again later.");
+      toast.error("Failed to fetch employee locations");
     } finally {
       setLoading(false);
     }
@@ -123,81 +152,169 @@ const TrackEmployee = () => {
     }
   }, [isTrackingFieldEmployees, handleTrackAll]);
 
+  // WebSocket connection and message handling
   useEffect(() => {
     const subadminId = getSubadminId();
     if (!subadminId) return;
 
+    // Clean up existing connection if any
     if (stompClientRef.current) {
       stompClientRef.current.deactivate();
     }
 
-    const sock = new SockJS("https://api.managifyhr.com/ws");
+    const sock = new SockJS("http://localhost:8081/ws");
     const stompClient = new Client({
       webSocketFactory: () => sock,
       reconnectDelay: 5000,
+      debug: (str) => console.log('WebSocket:', str),
+      onConnect: () => {
+        console.log('WebSocket Connected');
+        // Subscribe to location updates for all employees of this subadmin
+        stompClient.subscribe(`/topic/location/${subadminId}`, (message) => {
+          try {
+            const data = JSON.parse(message.body);
+            console.log('Location update received:', data);
+            
+            // Handle field employees tracking
+            if (isTrackingFieldEmployees) {
+              setFieldEmployeeLocations(prev => {
+                const exists = prev.some(emp => emp.empId === data.empId);
+                if (exists) {
+                  // Update existing employee location
+                  return prev.map(emp => 
+                    emp.empId === data.empId
+                      ? { 
+                        ...emp, 
+                        lat: parseFloat(data.latitude), 
+                        lng: parseFloat(data.longitude),
+                        lastLat: emp.lat || null,
+                        lastLng: emp.lng || null,
+                        fullName: data.fullName,
+                        timestamp: new Date().toISOString()
+                      }
+                      : emp
+                  );
+                } else if (data.workType === 'FIELD') {
+                  // Add new field employee
+                  return [
+                    ...prev,
+                    {
+                      empId: data.empId,
+                      fullName: data.fullName,
+                      lat: parseFloat(data.latitude),
+                      lng: parseFloat(data.longitude),
+                      workType: 'FIELD',
+                      timestamp: new Date().toISOString()
+                    }
+                  ];
+                }
+                return prev;
+              });
+              
+              // Update map center if tracking this employee
+              if (selectedEmployee && selectedEmployee.empId === data.empId) {
+                const lat = parseFloat(data.latitude);
+                const lng = parseFloat(data.longitude);
+                setLocation(prev => ({
+                  ...prev,
+                  lat,
+                  lng,
+                  lastLat: prev ? prev.lat : null,
+                  lastLng: prev ? prev.lng : null,
+                  empName: data.fullName,
+                  timestamp: new Date().toISOString()
+                }));
+                setMapCenter({ lat, lng });
+                fetchAddress(lat, lng, setAddress);
+              }
+            } 
+            // Handle single employee tracking
+            else if (selectedEmployee && data.empId === selectedEmployee.empId) {
+              const lat = parseFloat(data.latitude);
+              const lng = parseFloat(data.longitude);
+              setLocation(prev => ({
+                ...prev,
+                lat,
+                lng,
+                lastLat: prev ? prev.lat : null,
+                lastLng: prev ? prev.lng : null,
+                empName: data.fullName,
+                workType: data.workType,
+                timestamp: new Date().toISOString()
+              }));
+              setMapCenter({ lat, lng });
+              fetchAddress(lat, lng, setAddress);
+            }
+          } catch (error) {
+            console.error('Error processing WebSocket message:', error);
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
+      }
     });
-
-    stompClient.onConnect = () => {
-      stompClient.subscribe(`/topic/location/${subadminId}`, (message) => {
-        const data = JSON.parse(message.body);
-        if (isTrackingFieldEmployees) {
-          setFieldEmployeeLocations(prev =>
-            prev.map(emp =>
-              emp.empId === data.empId
-                ? { ...emp, lat: parseFloat(data.latitude), lng: parseFloat(data.longitude), fullName: data.fullName }
-                : emp
-            )
-          );
-        } else if (selectedEmployee && data.empId === selectedEmployee.empId) {
-          const lat = parseFloat(data.latitude);
-          const lng = parseFloat(data.longitude);
-          setLocation({ lat, lng, empName: data.fullName });
-          setMapCenter({ lat, lng });
-          fetchAddress(lat, lng, setAddress);
-        }
-      });
-    };
 
     stompClient.activate();
     stompClientRef.current = stompClient;
 
     return () => {
-      if (stompClient) {
+      if (stompClient && stompClient.connected) {
         stompClient.deactivate();
+        console.log('WebSocket Disconnected');
       }
     };
   }, [isTrackingFieldEmployees, selectedEmployee]);
 
   const handleTrack = async (emp) => {
-    // This function is now simplified as WebSocket handles updates
     setError("");
     setLocation(null);
     setAddress("");
     setLastAddress("");
     setLoading(true);
+    setSelectedEmployee(emp);
+    
     const subadminId = getSubadminId();
     if (!subadminId) return;
+    
     try {
+      // Get the latest location data
       const res = await axios.get(`${API_URL}/location/${subadminId}/employee/${emp.empId}`);
       const data = res.data;
-      if (!data || !data.latitude || !data.longitude) {
+      
+      if (!data || data.latitude === undefined || data.longitude === undefined) {
         throw new Error("No location data available for this employee.");
       }
+      
       const lat = parseFloat(data.latitude);
       const lng = parseFloat(data.longitude);
+      const lastLat = data.lastLatitude ? parseFloat(data.lastLatitude) : null;
+      const lastLng = data.lastLongitude ? parseFloat(data.lastLongitude) : null;
 
       // Store both current and last location data
       const locationData = {
         lat,
         lng,
+        empId: emp.empId,
         empName: emp.fullName,
-        lastLat: data.lastLatitude ? parseFloat(data.lastLatitude) : null,
-        lastLng: data.lastLongitude ? parseFloat(data.lastLongitude) : null
+        workType: data.workType || 'UNKNOWN',
+        lastLat,
+        lastLng,
+        timestamp: data.timestamp || new Date().toISOString()
       };
 
       setLocation(locationData);
       setMapCenter({ lat, lng });
       setZoom(16);
+      
+      // Fetch address for the current location
+      await fetchAddress(lat, lng, setAddress);
+      
+      // If there's a previous location, fetch its address too
+      if (lastLat && lastLng) {
+        await fetchAddress(lastLat, lastLng, setLastAddress);
+      }
 
       // Fetch current location address
       fetchAddress(lat, lng, setAddress);

@@ -21,7 +21,7 @@ const CheckData = () => {
   };
 
   const subadminId = getSubadminId();
-  const API_URL = 'https://api.managifyhr.com/api/invoices';
+  const API_URL = 'http://localhost:8081/api/invoices';
 
   // If no subadminId, show error message
   if (!subadminId) {

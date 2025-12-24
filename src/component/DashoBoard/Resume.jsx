@@ -27,7 +27,7 @@ const Resume = () => {
   const fetchEmployees = async (subadminId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
+      const response = await axios.get(`http://localhost:8081/api/employee/${subadminId}/employee/all`);
       setEmployees(response.data);
     } catch (error) {
       toast.error("Error fetching employees: " + error.message);
@@ -40,7 +40,7 @@ const Resume = () => {
   const fetchEmployeeResumes = async (empId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://api.managifyhr.com/api/resume/employee/${empId}`);
+      const response = await axios.get(`http://localhost:8081/api/resume/employee/${empId}`);
       setResumes(response.data || []);
     } catch (error) {
       toast.error("Error fetching resumes: " + error.message);
@@ -63,7 +63,7 @@ const Resume = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      await axios.delete(`https://api.managifyhr.com/api/resume/${resumeToDelete.resumeId}`);
+      await axios.delete(`http://localhost:8081/api/resume/${resumeToDelete.resumeId}`);
       toast.success('Resume deleted successfully');
       setShowDeletePopup(false);
       setResumeToDelete(null);
@@ -196,7 +196,7 @@ const Resume = () => {
                   </p>
                   <div className="flex justify-end space-x-2">
                     <a
-                      href={`https://api.managifyhr.com/uploads/resumes/${resume.resumeFileName}`}
+                      href={`http://localhost:8081/uploads/resumes/${resume.resumeFileName}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-200"

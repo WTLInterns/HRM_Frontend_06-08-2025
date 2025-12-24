@@ -23,7 +23,7 @@ const TokenDebugger = () => {
     if (!userData) return;
     
     try {
-      const response = await fetch(`https://api.managifyhr.com/api/leaveform/${userData.id}/all`);
+      const response = await fetch(`http://localhost:8081/api/leaveform/${userData.id}/all`);
       if (!response.ok) throw new Error('Failed to fetch leave data');
       const data = await response.json();
       setLeaveData(data);
@@ -52,7 +52,7 @@ const TokenDebugger = () => {
         fcmTokenPreview: leave.subadmin?.fcmToken?.substring(0, 30) + '...',
         fcmTokenUpdatedAt: leave.subadmin?.fcmTokenUpdatedAt
       },
-      apiUrl: `https://api.managifyhr.com/api/leaveform/${leave.subadmin?.id}/${leave.employee?.empId}/${leave.leaveId}/${leave.employee?.fcmToken}/${leave.subadmin?.fcmToken}`,
+      apiUrl: `http://localhost:8081/api/leaveform/${leave.subadmin?.id}/${leave.employee?.empId}/${leave.leaveId}/${leave.employee?.fcmToken}/${leave.subadmin?.fcmToken}`,
       tokenValidation: {
         employeeTokenValid: !!(leave.employee?.fcmToken && leave.employee.fcmToken.length > 50),
         subadminTokenValid: !!(leave.subadmin?.fcmToken && leave.subadmin.fcmToken.length > 50),

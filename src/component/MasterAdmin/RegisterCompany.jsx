@@ -149,7 +149,7 @@ const RegisterCompany = () => {
 
     try {
       if (isEditMode) {
-        const apiUrl = `https://api.managifyhr.com/api/subadmin/update-fields/${formData.id}`;
+        const apiUrl = `http://localhost:8081/api/subadmin/update-fields/${formData.id}`;
         const formDataToSend = new FormData();
         formDataToSend.append("name", formData.name);
         formDataToSend.append("lastname", formData.lastName);
@@ -184,7 +184,7 @@ const RegisterCompany = () => {
         localStorage.removeItem("companyToEdit");
         setSuccessMessage("Company updated successfully!");
 
-        const refreshedResponse = await fetch(`https://api.managifyhr.com/api/subadmin/${formData.id}`);
+        const refreshedResponse = await fetch(`http://localhost:8081/api/subadmin/${formData.id}`);
         if (refreshedResponse.ok) {
           const refreshedData = await refreshedResponse.json();
           setFormData((prev) => ({ ...prev, status: normalizeStatus(refreshedData.status) }));
@@ -193,7 +193,7 @@ const RegisterCompany = () => {
         // Dispatch event to notify other components
         window.dispatchEvent(new Event("userStatusUpdated"));
       } else {
-        const apiUrl = `https://api.managifyhr.com/masteradmin/addSubAdmin/1`;
+        const apiUrl = `http://localhost:8081/masteradmin/addSubAdmin/1`;
         const formDataToSend = new FormData();
         formDataToSend.append("id", formData.id);
         formDataToSend.append("name", formData.name);
@@ -223,7 +223,7 @@ const RegisterCompany = () => {
         });
         if (!response.ok) throw new Error("Failed to register company");
         try {
-          await fetch(`https://api.managifyhr.com/api/subadmin/send-email/${formData.email}`, { method: "POST" });
+          await fetch(`http://localhost:8081/api/subadmin/send-email/${formData.email}`, { method: "POST" });
         } catch (emailErr) {
           console.error("Failed to send registration email:", emailErr);
         }
@@ -582,7 +582,7 @@ const RegisterCompany = () => {
                     <>
                       <div className="w-full h-full flex justify-center items-center">
                         <img
-                          src={typeof formData.logo === "string" ? `https://api.managifyhr.com/images/profile/${formData.logo}` : logoPreview}
+                          src={typeof formData.logo === "string" ? `http://localhost:8081/images/profile/${formData.logo}` : logoPreview}
                           alt="Company Logo"
                           className="max-h-full max-w-full object-contain"
                         />
@@ -634,7 +634,7 @@ const RegisterCompany = () => {
                   {signaturePreview ? (
                     <div className="w-full h-full flex justify-center items-center">
                       <img
-                        src={typeof formData.signature === "string" ? `https://api.managifyhr.com/images/profile/${formData.signature}` : signaturePreview}
+                        src={typeof formData.signature === "string" ? `http://localhost:8081/images/profile/${formData.signature}` : signaturePreview}
                         alt="Signature"
                         className="max-h-full max-w-full object-contain"
                       />
@@ -676,7 +676,7 @@ const RegisterCompany = () => {
                   {stampPreview ? (
                     <div className="w-full h-full flex justify-center items-center">
                       <img
-                        src={typeof formData.stampImage === "string" ? `https://api.managifyhr.com/images/profile/${formData.stampImage}` : stampPreview}
+                        src={typeof formData.stampImage === "string" ? `http://localhost:8081/images/profile/${formData.stampImage}` : stampPreview}
                         alt="Company Stamp"
                         className="max-h-full max-w-full object-contain"
                       />

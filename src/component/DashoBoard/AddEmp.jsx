@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 let API_URL = import.meta.env.VITE_API_URL;
 if (!API_URL || typeof API_URL !== 'string' || !/^https?:\/\//i.test(API_URL)) {
   // Default to local backend for development
-  API_URL = 'https://api.managifyhr.com';
+  API_URL = 'http://localhost:8081';
   console.warn('VITE_API_URL not set or invalid. Defaulting to', API_URL);
 }
 
@@ -677,7 +677,7 @@ const handleEditEmp = (employee) => {
 
     // Profile image - using the correct field name from the backend entity (empimg)
     if (employee.empimg) {
-      const profileImageUrl = `https://api.managifyhr.com/images/profile/${employee.empimg}`;
+      const profileImageUrl = `http://localhost:8081/images/profile/${employee.empimg}`;
       console.log("Setting profile image URL:", profileImageUrl);
       setEmpImgPreview(profileImageUrl);
 
@@ -692,7 +692,7 @@ const handleEditEmp = (employee) => {
 
     // Aadhar image - using the correct field name from the backend entity (adharimg)
     if (employee.adharimg) {
-      const aadharImageUrl = `https://api.managifyhr.com/images/profile/${employee.adharimg}`;
+      const aadharImageUrl = `http://localhost:8081/images/profile/${employee.adharimg}`;
       console.log("Setting aadhar image URL:", aadharImageUrl);
       setAdharImgPreview(aadharImageUrl);
 
@@ -707,7 +707,7 @@ const handleEditEmp = (employee) => {
 
     // PAN image - using the correct field name from the backend entity (panimg)
     if (employee.panimg) {
-      const panImageUrl = `https://api.managifyhr.com/images/profile/${employee.panimg}`;
+      const panImageUrl = `http://localhost:8081/images/profile/${employee.panimg}`;
       console.log("Setting PAN image URL:", panImageUrl);
       setPanImgPreview(panImageUrl);
 
