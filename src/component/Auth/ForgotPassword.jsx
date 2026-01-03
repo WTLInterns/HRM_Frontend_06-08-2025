@@ -27,7 +27,7 @@ const ForgotPassword = () => {
       // Try masteradmin reset first
       try {
         const masterAdminResponse = await axios.post(
-          `http://localhost:8081/masteradmin/forgot-password/request?email=${email}`
+          `https://api.managifyhr.com/masteradmin/forgot-password/request?email=${email}`
         );
         
         console.log("Master Admin OTP request response:", masterAdminResponse.data);
@@ -49,7 +49,7 @@ const ForgotPassword = () => {
         console.log("Not a master admin user, trying subadmin endpoint");
         // If masteradmin request fails, try subadmin endpoint
         const subadminResponse = await axios.post(
-          `http://localhost:8081/api/subadmin/forgot-password/request?email=${email}`
+          `https://api.managifyhr.com/api/subadmin/forgot-password/request?email=${email}`
         );
         
         console.log("Subadmin OTP request response:", subadminResponse.data);

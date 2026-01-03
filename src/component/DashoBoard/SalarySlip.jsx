@@ -221,7 +221,7 @@ export default function SalaryReport() {
       const apiEndDate = toApiDate(endDate.trim());
       // Prefer subadminId-based endpoint to avoid company name mismatches
       const response = await axios.get(
-        `http://localhost:8081/api/employee/${user.id}/${selectedEmpId}/salary-slip?startDate=${apiStartDate}&endDate=${apiEndDate}`
+        `https://api.managifyhr.com/api/employee/${user.id}/${selectedEmpId}/salary-slip?startDate=${apiStartDate}&endDate=${apiEndDate}`
       )
       
       // Fetch the complete employee details to ensure we have department and bank details
@@ -229,7 +229,7 @@ export default function SalaryReport() {
       try {
         // Get employee by empId - this is more reliable than using name
         const empResponse = await axios.get(
-          `http://localhost:8081/api/employee/${user.id}/employee/by-id/${selectedEmpId}`
+          `https://api.managifyhr.com/api/employee/${user.id}/employee/by-id/${selectedEmpId}`
         )
         if (empResponse.status === 200) {
           employeeDetails = empResponse.data
@@ -798,7 +798,7 @@ export default function SalaryReport() {
         createCell(margin + sigColumnWidth, yPos, sigColumnWidth, signatureRowHeight, "", 10, "left")
 
         // Left column: Signature image'
-        const signature = `http://localhost:8081/images/profile/${user.signature}`
+        const signature = `https://api.managifyhr.com/images/profile/${user.signature}`
         try {
           doc.addImage(
             signature,
@@ -822,7 +822,7 @@ export default function SalaryReport() {
         }
 
         // Right column: Company stamp image (centered in the box)
-        const stampImg = `http://localhost:8081/images/profile/${user.stampImg}`
+        const stampImg = `https://api.managifyhr.com/images/profile/${user.stampImg}`
         const stampWidth = 60;
         const stampHeight = 30;
         const stampX = margin + sigColumnWidth + (sigColumnWidth - stampWidth) / 2; // Center horizontally
@@ -870,7 +870,7 @@ export default function SalaryReport() {
             const blob = doc.output('blob');
             const formData = new FormData();
             formData.append('pdf', new File([blob], fileName, { type: 'application/pdf' }));
-            const uploadUrl = `http://localhost:8081/api/salary-slips/${user.id}/${selectedEmpId}`;
+            const uploadUrl = `https://api.managifyhr.com/api/salary-slips/${user.id}/${selectedEmpId}`;
             await axios.post(uploadUrl, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             try { toast.success('Salary slip saved on server'); } catch (_) {}
           }
@@ -946,7 +946,7 @@ export default function SalaryReport() {
       if (value.trim().length > 0 && user && user.id) {
         try {
           // Fetch employee list from backend for autocomplete (like ViewAttendance)
-          const res = await axios.get(`http://localhost:8081/api/employee/${user.id}/employee/all`);
+          const res = await axios.get(`https://api.managifyhr.com/api/employee/${user.id}/employee/all`);
           const employeeList = res.data || [];
           const query = value.trim().toLowerCase();
           const list = employeeList.map(emp => ({

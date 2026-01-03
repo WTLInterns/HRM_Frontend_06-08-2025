@@ -76,7 +76,7 @@ const TerminationLetter = () => {
         const email = user.email || "arbaj.shaikh2034@gmail.com";
         
         console.log("Fetching subadmin data for email:", email);
-        const response = await axios.get(`http://localhost:8081/api/subadmin/subadmin-by-email/${email}`);
+        const response = await axios.get(`https://api.managifyhr.com/api/subadmin/subadmin-by-email/${email}`);
         console.log("Subadmin API Response:", response.data);
         setSubadmin(response.data);
         fetchEmployees(response.data.id);
@@ -95,7 +95,7 @@ const TerminationLetter = () => {
   const fetchEmployees = async (subadminId) => {
     try {
       console.log(`Fetching employees for subadmin ID: ${subadminId}`);
-      const response = await axios.get(`http://localhost:8081/api/employee/${subadminId}/employee/all`);
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/${subadminId}/employee/all`);
       console.log("Employees API Response:", response.data);
       setEmployees(response.data);
       setLoading(false);
@@ -251,7 +251,7 @@ const TerminationLetter = () => {
           
           // If image src is relative path to profile image, convert to absolute URL
           if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-            const newSrc = `http://localhost:8081${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+            const newSrc = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             console.log(`Converting relative URL to absolute: ${img.src} -> ${newSrc}`);
             img.src = newSrc;
           } else {
@@ -361,7 +361,7 @@ const TerminationLetter = () => {
             
             // Fix image URLs for server resources
             if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-              img.src = `http://localhost:8081${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+              img.src = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             }
           });
         }
@@ -496,7 +496,7 @@ const TerminationLetter = () => {
           
           // If image src is relative path to profile image, convert to absolute URL
           if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-            const newSrc = `http://localhost:8081${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+            const newSrc = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             console.log(`Converting relative URL to absolute: ${img.src} -> ${newSrc}`);
             img.src = newSrc;
           } else {
@@ -606,7 +606,7 @@ const TerminationLetter = () => {
             
             // Fix image URLs for server resources
             if (img.src.includes('/images/profile/') && !img.src.startsWith('http')) {
-              img.src = `http://localhost:8081${img.src.startsWith('/') ? '' : '/'}${img.src}`;
+              img.src = `https://api.managifyhr.com${img.src.startsWith('/') ? '' : '/'}${img.src}`;
             }
           });
         }
@@ -698,7 +698,7 @@ const TerminationLetter = () => {
       
       // Send the document using the backend API
       const response = await axios.post(
-        `http://localhost:8081/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/termination`,
+        `https://api.managifyhr.com/api/certificate/send/${subadmin.id}/${selectedEmployee.empId}/termination`,
         formData,
         {
           headers: {
@@ -1022,7 +1022,7 @@ const TerminationLetter = () => {
                   <div className="flex-shrink-0 mr-4">
                     {subadmin && subadmin.companylogo ? (
                       <img 
-                        src={`http://localhost:8081/images/profile/${subadmin.companylogo}`} 
+                        src={`https://api.managifyhr.com/images/profile/${subadmin.companylogo}`} 
                         alt="Company Logo" 
                         className="h-20 object-contain" 
                         onError={(e) => {
@@ -1109,7 +1109,7 @@ const TerminationLetter = () => {
                     {subadmin && subadmin.signature ? (
                       <div>
                         <img 
-                          src={`http://localhost:8081/images/profile/${subadmin.signature}`} 
+                          src={`https://api.managifyhr.com/images/profile/${subadmin.signature}`} 
                           alt="Signature" 
                           className="h-16 object-contain mb-2" 
                           onError={(e) => {
@@ -1135,7 +1135,7 @@ const TerminationLetter = () => {
                   {subadmin && subadmin.stampImg && (
                     <div className="flex flex-col items-center">
                       <img 
-                        src={`http://localhost:8081/images/profile/${subadmin.stampImg}`} 
+                        src={`https://api.managifyhr.com/images/profile/${subadmin.stampImg}`} 
                         alt="Company Stamp" 
                         className="h-32 w-32 object-contain transform scale-100 shadow-sm" 
                         style={{ 

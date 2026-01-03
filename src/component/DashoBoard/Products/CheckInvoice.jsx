@@ -156,9 +156,9 @@ const CheckInvoice = () => {
   };
 
   const subadminId = getSubadminId();
-  const INVOICE_API_URL = 'http://localhost:8081/api/invoices';
-  const EMPLOYEE_API_URL = 'http://localhost:8081/api/employee';
-  const PRODUCT_API_URL = 'http://localhost:8081/api/products';
+  const INVOICE_API_URL = 'https://api.managifyhr.com/api/invoices';
+  const EMPLOYEE_API_URL = 'https://api.managifyhr.com/api/employee';
+  const PRODUCT_API_URL = 'https://api.managifyhr.com/api/products';
 
   // If no subadminId, show error message
   if (!subadminId) {
@@ -186,7 +186,7 @@ const CheckInvoice = () => {
       console.log('🚀 Component mounted, testing API connectivity...');
 
       // Test if we can reach the backend
-      axios.get('http://localhost:8081/api/invoices/1')
+      axios.get('https://api.managifyhr.com/api/invoices/1')
         .then(response => {
           console.log('✅ Backend is accessible');
         })
@@ -1728,7 +1728,7 @@ const CheckInvoice = () => {
       autoClose: 4000,
       onClose: () => {
         // First try: Open in new tab
-        const pdfUrl = `http://localhost:8081/api/invoices/${subadminId}/${invoice.id}/pdf`;
+        const pdfUrl = `https://api.managifyhr.com/api/invoices/${subadminId}/${invoice.id}/pdf`;
         console.log('🔗 Attempting to open PDF in new tab:', pdfUrl);
         window.open(pdfUrl, '_blank');
 
@@ -1963,14 +1963,14 @@ const CheckInvoice = () => {
   const handleViewPdf = (invoice) => {
     if (!invoice) return;
     const path = invoice.invoicePdfPath;
-    const fallbackUrl = `http://localhost:8081/api/invoices/${subadminId}/${invoice.id}/pdf`;
-    const pdfUrl = path ? (path.startsWith('http') ? path : `http://localhost:8081${path}`) : fallbackUrl;
+    const fallbackUrl = `https://api.managifyhr.com/api/invoices/${subadminId}/${invoice.id}/pdf`;
+    const pdfUrl = path ? (path.startsWith('http') ? path : `https://api.managifyhr.com${path}`) : fallbackUrl;
     window.open(pdfUrl, '_blank');
   };
 
   const handleDownloadPdf = (invoice) => {
     if (invoice.invoicePdfPath) {
-      const pdfUrl = `http://localhost:8081${invoice.invoicePdfPath}`;
+      const pdfUrl = `https://api.managifyhr.com${invoice.invoicePdfPath}`;
       window.open(pdfUrl, '_blank');
     } else {
       alert('No PDF available for this invoice');
@@ -3640,7 +3640,7 @@ const CheckInvoice = () => {
                 <button
                   onClick={() => {
                     // Direct fallback to new tab
-                    window.open(`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
+                    window.open(`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
                   }}
                   className={`px-4 py-2 rounded-lg font-semibold transition ${
                     isDarkMode
@@ -3685,7 +3685,7 @@ const CheckInvoice = () => {
                       <button
                         onClick={() => {
                           // Direct fallback to new tab
-                          window.open(`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
+                          window.open(`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`, '_blank');
                         }}
                         className={`px-3 py-2 rounded-lg font-semibold transition ${
                           isDarkMode
@@ -3701,7 +3701,7 @@ const CheckInvoice = () => {
                   <div className="flex-1 flex items-center justify-center bg-gray-50">
                     <div className="w-full h-full max-w-none">
                       <iframe
-                        src={`http://localhost:8081/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`}
+                        src={`https://api.managifyhr.com/api/invoices/${subadminId}/${selectedPdfInvoice.id}/pdf`}
                         className="w-full h-full"
                         title={`Invoice ${selectedPdfInvoice.invoiceNumber}`}
                         onError={(e) => {

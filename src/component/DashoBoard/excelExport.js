@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export function exportAttendanceToExcel(attendanceData, employeeObj) {
   // Helper to format date as DD-MM-YYYY
@@ -28,11 +28,12 @@ export function exportAttendanceToExcel(attendanceData, employeeObj) {
     'Work Type': rec.workType || '',
   }));
 
-  // Create a worksheet
-  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  // Create a new workbook and worksheet
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Attendance');
 
-  // Style the header row: bold and black
-  const headerNames = [
+  // Add headers
+  const headers = [
     'Employee ID',
     'Employee Name',
     'Date',
@@ -46,56 +47,57 @@ export function exportAttendanceToExcel(attendanceData, employeeObj) {
     'Lunch Out Time',
     'Work Type',
   ];
-  for (let c = 0; c < headerNames.length; c++) {
-    const cellRef = XLSX.utils.encode_cell({ r: 0, c });
-    if (worksheet[cellRef]) {
-      worksheet[cellRef].s = {
-        font: { bold: true, color: { rgb: "000000" } },
-      };
-    }
-  }
+  worksheet.addRow(headers);
 
-  // Style only the cell value inside Status as red (not bold) for specified statuses
-  const redStatuses = ['Paid Leave', 'Leave', 'Absent', 'Week Off', 'Holiday'];
-  const statusCol = 3; // 'Status' is the 4th column (0-based index)
-  for (let i = 0; i < attendanceData.length; i++) {
-    const rec = attendanceData[i];
-    const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: statusCol }); // +1 for header row
-    if (!worksheet[cellRef]) continue;
-    if (redStatuses.includes(rec.status)) {
-      worksheet[cellRef].s = {
-        font: { color: { rgb: "FF0000" }, bold: false }, // Red, NOT bold
-      };
+  // Style header row
+  const headerRow = worksheet.getRow(1);
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FF000000' } };
+  });
+
+  // Add data rows
+  formattedData.forEach((rec, index) => {
+    const row = worksheet.addRow(Object.values(rec));
+    
+    // Style the Status column (4th column, index 4 in 1-based index)
+    const statusCell = row.getCell(4); // Status column
+    const redStatuses = ['Paid Leave', 'Leave', 'Absent', 'Week Off', 'Holiday'];
+    
+    if (redStatuses.includes(rec.Status)) {
+      statusCell.font = { color: { argb: 'FFFF0000' }, bold: false }; // Red, NOT bold
     } else {
-      worksheet[cellRef].s = {
-        font: { color: { rgb: "000000" }, bold: false }, // Default black, NOT bold
-      };
+      statusCell.font = { color: { argb: 'FF000000' }, bold: false }; // Default black, NOT bold
     }
-  }
-
+  });
 
   // Set column widths for better readability
-  worksheet['!cols'] = [
-    { wch: 14 },  // Employee ID
-    { wch: 24 },  // Employee Name
-    { wch: 15 },  // Date
-    { wch: 18 },  // Status
-    { wch: 30 },  // Reason
-    { wch: 16 },  // Working Hours
-    { wch: 16 },  // Break Duration
-    { wch: 16 },  // Punch In Time
-    { wch: 16 },  // Punch Out Time
-    { wch: 16 },  // Lunch In Time
-    { wch: 16 },  // Lunch Out Time
-    { wch: 14 },  // Work Type
+  worksheet.columns = [
+    { width: 14 },  // Employee ID
+    { width: 24 },  // Employee Name
+    { width: 15 },  // Date
+    { width: 18 },  // Status
+    { width: 30 },  // Reason
+    { width: 16 },  // Working Hours
+    { width: 16 },  // Break Duration
+    { width: 16 },  // Punch In Time
+    { width: 16 },  // Punch Out Time
+    { width: 16 },  // Lunch In Time
+    { width: 16 },  // Lunch Out Time
+    { width: 14 },  // Work Type
   ];
-
-  // Create a workbook and add the worksheet
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
 
   // Generate Excel file and trigger download
   const fileName = `Attendance_${employeeObj?.firstName || 'Employee'}.xlsx`;
-  XLSX.writeFile(workbook, fileName);
+  
+  // Generate buffer and create download
+  workbook.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 

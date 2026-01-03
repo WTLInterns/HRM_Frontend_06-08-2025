@@ -69,7 +69,7 @@ const AddProducts = () => {
     );
   }
 
-  const API_BASE_URL = 'http://localhost:8081/api/products';
+  const API_BASE_URL = 'https://api.managifyhr.com/api/products';
 
   // Fetch products on component mount
   useEffect(() => {
@@ -180,7 +180,7 @@ const AddProducts = () => {
       description: product.description || '',
       productImage: null
     });
-    setEditImagePreview(product.productImage ? `http://localhost:8081${product.productImage}` : null);
+    setEditImagePreview(product.productImage ? `https://api.managifyhr.com${product.productImage}` : null);
     setShowEditModal(true);
   };
 
@@ -365,7 +365,7 @@ const AddProducts = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {product.productImage ? (
                           <img
-                            src={`http://localhost:8081${product.productImage}`}
+                            src={`https://api.managifyhr.com${product.productImage}`}
                             alt={product.productName}
                             className="h-16 w-16 object-cover rounded-lg border"
                           />

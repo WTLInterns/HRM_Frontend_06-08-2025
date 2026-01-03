@@ -105,7 +105,7 @@ const Login = () => {
       try {
         console.log("Attempting subadmin login...");
         response = await axios.post(
-          `http://localhost:8081/api/subadmin/login?email=${email}&password=${password}`
+          `https://api.managifyhr.com/api/subadmin/login?email=${email}&password=${password}`
         );
         const data = response.data;
         console.log("Subadmin login response:", data);
@@ -125,7 +125,7 @@ const Login = () => {
 
         // Try masteradmin login
         response = await axios.post(
-          `http://localhost:8081/masteradmin/login?email=${email}&password=${password}`
+          `https://api.managifyhr.com/masteradmin/login?email=${email}&password=${password}`
         );
         const data = response.data;
         console.log("Masteradmin login response:", data);

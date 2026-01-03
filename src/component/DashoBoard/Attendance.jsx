@@ -93,7 +93,7 @@ export default function Attendance() {
       
       // Fetch employee list for autocomplete
       axios
-        .get(`http://localhost:8081/api/employee/${subAdminId}/employee/all`)
+        .get(`https://api.managifyhr.com/api/employee/${subAdminId}/employee/all`)
         .then(res => {
           console.log("Loaded employee list:", res.data.length, "employees");
           setEmployeeList(res.data);
@@ -164,7 +164,7 @@ export default function Attendance() {
   const checkExistingAttendance = async (empId, date) => {
     try {
       console.log(`Checking attendance for employee ID ${empId} on ${date}`);
-      const response = await axios.get(`http://localhost:8081/api/employee/bulk/${empId}/${date}`);
+      const response = await axios.get(`https://api.managifyhr.com/api/employee/bulk/${empId}/${date}`);
       console.log('Existing attendance response:', response.data);
       return response.data;
     } catch (error) {
@@ -310,8 +310,8 @@ export default function Attendance() {
       }
 
       let response;
-      let updateUrl = `http://localhost:8081/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
-      let addUrl = `http://localhost:8081/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
+      let updateUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
 
       if (existingAttendance && existingAttendance.length > 0) {
         // Attendance exists, use PUT to update
@@ -483,8 +483,8 @@ export default function Attendance() {
       
       let response;
       let existingStatus = '';
-      let updateUrl = `http://localhost:8081/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
-      let addUrl = `http://localhost:8081/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
+      let updateUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/update/bulk`;
+      let addUrl = `https://api.managifyhr.com/api/employee/${subAdminId}/${selectedEmpId}/attendance/add/bulk`;
       
       if (existingAttendance && existingAttendance.length > 0) {
         // Attendance exists, use PUT to update
@@ -791,7 +791,7 @@ export default function Attendance() {
         promises.push(
           axios
             .post(
-              `http://localhost:8081/api/employee/${subAdminId}/${empIdForSubmit}/attendance/add/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${empIdForSubmit}/attendance/add/bulk`,
               newRecords,
               config
             )
@@ -806,7 +806,7 @@ export default function Attendance() {
         promises.push(
           axios
             .put(
-              `http://localhost:8081/api/employee/${subAdminId}/${empIdForSubmit}/attendance/update/bulk`,
+              `https://api.managifyhr.com/api/employee/${subAdminId}/${empIdForSubmit}/attendance/update/bulk`,
               updateRecords,
               config
             )
